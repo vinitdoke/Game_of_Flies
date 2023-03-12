@@ -1,5 +1,5 @@
 def initialise(
-        input_list : list,
+        input_list: list,
 
 ):
     """
@@ -9,6 +9,6 @@ def initialise(
     3. Type-Indices
     4. Parameter_matrix (n_type*n_type*3 (r_max, r_min, f_max) array)
        r_min < r_max
-       0<= f_max <= 1
+       0 <= f_max <= 1
     """
     pass
