@@ -41,6 +41,8 @@ def wrap_clusters_force_distance(*args):
             return 2 * args[3] / (args[1] - args[0]) * (dist - args[0])
         elif (args[0] + args[1]) / 2 <= dist <= args[1]:
             return 2 * args[3] / (args[1] - args[0]) * (args[1] - dist)
+        else:
+            return 0
 
     return numba.njit(clusters_force_distance)
 
