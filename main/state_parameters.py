@@ -1,14 +1,85 @@
-def initialise(
-        input_list: list,
+# def initialise(
+#         input_list: list,
+#
+# ):
+#     """
+#     Outputs:
+#     1. Positions (pos_x, pos_y, pos_z)
+#     2. Velocities (vel_x, vel_y, vel_z)
+#     3. Type-Indices
+#     4. Parameter_matrix (n_type*n_type*3 (r_max, r_min, f_max) array)
+#        r_min < r_max
+#        0 <= f_max <= 1
+#     """
+#     pass
 
-):
+import numpy as np
+from numpy import random
+import matplotlib.pyplot as plt
+
+
+def _plot_dist(pos_x, pos_y, pos_z,
+               max_particles, len_p_tynum):
+    for i in range(len_p_tynum):
+        plt.scatter(pos_x[i*max_particles: (i+1)*max_particles],
+                    pos_y[i*max_particles: (i+1)*max_particles])
+    plt.title('Particle Distribution')
+    plt.legend(['Particle1', 'Particle2'])
+    plt.show()
+
+
+def initialise(p_tnum, *params):
+    max_particles = 1000  # max particle of a single kind
+    n_params = len(params)
+    len_p_tynum = len(p_tnum)
+    dist_params = int(n_params/(len_p_tynum*len_p_tynum))
+
+    pos_x = np.empty(len_p_tynum*max_particles)*np.NAN
+    pos_y = np.empty(len_p_tynum*max_particles)*np.NAN
+    pos_z = np.empty(len_p_tynum*max_particles)*np.NAN
+
+    vel_x = np.empty(len_p_tynum*max_particles)*np.NAN
+    vel_y = np.empty(len_p_tynum*max_particles)*np.NAN
+    vel_z = np.empty(len_p_tynum*max_particles)*np.NAN
+
+    interact_matrix = np.zeros((dist_params, len_p_tynum, len_p_tynum))
+
+    """Random Initialization of positions and velocities
+        num of single kind of particles <= max_particles
+        left spaces filled with NAN
     """
-    Outputs:
-    1. Positions (pos_x, pos_y, pos_z)
-    2. Velocities (vel_x, vel_y, vel_z)
-    3. Type-Indices
-    4. Parameter_matrix (n_type*n_type*3 (r_max, r_min, f_max) array)
-       r_min < r_max
-       0 <= f_max <= 1
-    """
-    pass
+    for i in range(len_p_tynum):
+        n_specp = int(p_tnum[i])
+        x = -200.0*random.rand(n_specp) + 100.0
+        y = -200.0*random.rand(n_specp) + 100.0
+        z = -200.0*random.rand(n_specp) + 100.0
+        pos_x[i*max_particles: i*max_particles + n_specp] = x[:]
+        pos_y[i*max_particles: i*max_particles + n_specp] = y[:]
+        pos_z[i*max_particles: i*max_particles + n_specp] = z[:]
+        v_x = 2*random.rand(n_specp) - 1
+        v_y = 2*random.rand(n_specp) - 1
+        v_z = 2*random.rand(n_specp) - 1
+        vel_x[i*max_particles: i*max_particles + n_specp] = v_x
+        vel_y[i*max_particles: i*max_particles + n_specp] = v_y
+        vel_z[i*max_particles: i*max_particles + n_specp] = v_z
+
+    for k in range(dist_params):
+        for i in range(len_p_tynum):
+            for j in range(len_p_tynum):
+                interact_matrix[k, i, j] = params[
+                    len_p_tynum*len_p_tynum*k + len_p_tynum*i + j
+                    ]
+
+    _plot_dist(pos_x, pos_y, pos_z, max_particles, len_p_tynum)
+
+    return pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, interact_matrix
+
+
+if __name__ == '__main__':
+    p_x, p_y, p_z, v_x, v_y, v_z, inter = initialise([30, 40, 20],
+                                                     1, 2, 3,
+                                                     4, 5, 6,
+                                                     7, 8, 9,
+                                                     10, 11, 12,
+                                                     13, 14, 15,
+                                                     16, 17, 18)
