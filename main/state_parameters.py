@@ -9,9 +9,19 @@
 #     3. Type-Indices
 #     4. Parameter_matrix (n_type*n_type*3 (r_max, r_min, f_max) array)
 #        r_min < r_max
-#        0 <= f_max <= 1
+#        r_min != 0
+#        0 < f_max <= 1
+#        -1 <= f_min < 0
 #     """
 #     pass
+
+# TODO max_particles -- max_particles_per_type
+# TODO initialise -- random_init, params -- random generated
+# TODO fix inter shape and name
+# TODO change all names to full
+# TODO return dictionary of all data
+# TODO range defualt
+
 
 import numpy as np
 from numpy import random
@@ -22,16 +32,16 @@ def _plot_dist(pos_x, pos_y, pos_z,
                max_particles, len_p_tynum):
     for i in range(len_p_tynum):
         plt.scatter(pos_x[i*max_particles: (i+1)*max_particles],
-                    pos_y[i*max_particles: (i+1)*max_particles])
+                    pos_y[i*max_particles: (i+1)*max_particles], label = f"Particle {i}")
     plt.title('Particle Distribution')
-    plt.legend(['Particle1', 'Particle2'])
+    plt.legend()
     plt.show()
 
 
-def initialise(p_tnum, *params):
+def initialise(n_type, *params): #p_tnum -- n_type
     max_particles = 1000  # max particle of a single kind
     n_params = len(params)
-    len_p_tynum = len(p_tnum)
+    len_p_tynum = len(n_type)
     dist_params = int(n_params/(len_p_tynum*len_p_tynum))
 
     pos_x = np.empty(len_p_tynum*max_particles)*np.NAN
@@ -49,7 +59,7 @@ def initialise(p_tnum, *params):
         left spaces filled with NAN
     """
     for i in range(len_p_tynum):
-        n_specp = int(p_tnum[i])
+        n_specp = int(n_type[i])
         x = -200.0*random.rand(n_specp) + 100.0
         y = -200.0*random.rand(n_specp) + 100.0
         z = -200.0*random.rand(n_specp) + 100.0
@@ -76,6 +86,7 @@ def initialise(p_tnum, *params):
 
 
 if __name__ == '__main__':
+
     p_x, p_y, p_z, v_x, v_y, v_z, inter = initialise([30, 40, 20],
                                                      1, 2, 3,
                                                      4, 5, 6,
@@ -83,3 +94,4 @@ if __name__ == '__main__':
                                                      10, 11, 12,
                                                      13, 14, 15,
                                                      16, 17, 18)
+    print(inter.shape)
