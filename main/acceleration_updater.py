@@ -1,11 +1,22 @@
 import force_profiles
+import numpy as np
+import numba
 
 print(force_profiles.wrap_clusters_force_distance)
 #def interaction
 
 def accelerator(
-        
-):  
+        matrix_of_functions: list,
+        pos_x: np.ndarray,
+        pos_y: np.ndarray,
+        pos_z: np.ndarray,
+        vel_x: np.ndarray,
+        vel_y: np.ndarray,
+        vel_z: np.ndarray,
+        limits: tuple,
+        n_type_array: np.ndarray,
+        max_particles_per_type: int
+):
     """
     INPUTS
     1. matrix_of_force_functions
@@ -22,3 +33,5 @@ def accelerator(
         }
     """
     pass
+
+print(type((2,100)))

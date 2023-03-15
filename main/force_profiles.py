@@ -85,6 +85,7 @@ if __name__ == "__main__":
     print('mof_shape = ', np.shape(mof))
     print(sample_input)
 
-    for i in range(n_type):
-        for j in range(n_type):
-            _plot_force_function(mof[i][j], sample_input[i][j][1], (i, j))
+    print(type(mof))
+    #for i in range(n_type):
+        #for j in range(n_type):
+            #_plot_force_function(mof[i][j], sample_input[i][j][1], (i, j))
