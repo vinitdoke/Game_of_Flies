@@ -4,8 +4,6 @@ import matplotlib.pyplot as plt
 from time import perf_counter
 
 
-# TODO: Benchmark individual njitted functions and functions in a python list
-
 @numba.njit
 def _sampleJit(dist):
     if 0 <= dist < 0.2:
