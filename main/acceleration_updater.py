@@ -28,14 +28,14 @@ def resolve_particle_group(
         acc_z: np.ndarray # to avoid allocating inside function
 ) -> None:
     for i1 in range(n_type_array[index_1]):
-        p1 = max_particles_per_type * index_1 + i1
-        pos_x_1 = pos_x[p1]
-        pos_y_1 = pos_y[p1]
+        #p1 = max_particles_per_type * index_1 + i1
+        pos_x_1 = pos_x[i1]
+        pos_y_1 = pos_y[i1]
         for i2 in range(n_type_array[index_2]):
-            p2 = max_particles_per_type * index_2 + i2
-            if p1 != p2:
-                pos_x_2 = pos_x[p2]
-                pos_y_2 = pos_y[p2]
+            #p2 = max_particles_per_type * index_2 + i2
+            if i1 != i2:
+                pos_x_2 = pos_x[i2]
+                pos_y_2 = pos_y[i2]
 
                 distance = (pos_x_1 - pos_x_2) * (pos_x_1 - pos_x_2) + (pos_y_1 - pos_y_2) * (pos_y_1 - pos_y_2)
 
@@ -45,14 +45,12 @@ def resolve_particle_group(
                     a_x = acc * (pos_x_1 - pos_x_2) / distance
                     a_y = acc * (pos_y_1 - pos_y_2) / distance
 
-                    acc_x[p1] -= a_x
-                    acc_x[p2] += a_x
-                    acc_y[p1] -= a_y
-                    acc_y[p2] += a_y
+                    acc_x[i1] -= a_x
+                    acc_y[i1] -= a_y
 
-
+@numba.jit
 def accelerator(
-        matrix_of_functions: list,
+        matrix_of_functions,
         pos_x: np.ndarray,
         pos_y: np.ndarray,
         pos_z: np.ndarray,
@@ -96,14 +94,14 @@ def accelerator(
 
 
 
-n_type = 3
+n_type = 1
 sample_input = np.random.randint(1, 10, (n_type, n_type, 4))
 sample_input[:, :, 2] *= -1
 sample_input[:, :, 0] = sample_input[:, :, 1] - 2
 
 mof = all_force_functions("cluster_distance_input", *sample_input)
 
-n_type_arr = np.array([500, 500, 500])
+n_type_arr = np.array([999])
 
 pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, interact_matrix, max_particles = initialise(n_type_arr,
                                                         1, 2, 3,
