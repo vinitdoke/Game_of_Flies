@@ -61,9 +61,9 @@ def initialise(n_type, *params): #p_tnum -- n_type
     """
     for i in range(len_p_tynum):
         n_specp = int(n_type[i])
-        x = -200.0*random.rand(n_specp) + 100.0
-        y = -200.0*random.rand(n_specp) + 100.0
-        z = -200.0*random.rand(n_specp) + 100.0
+        x = 100.0*random.rand(n_specp)
+        y = 100.0*random.rand(n_specp)
+        z = 100.0*random.rand(n_specp)
         pos_x[i*max_particles: i*max_particles + n_specp] = x[:]
         pos_y[i*max_particles: i*max_particles + n_specp] = y[:]
         pos_z[i*max_particles: i*max_particles + n_specp] = z[:]
@@ -81,9 +81,9 @@ def initialise(n_type, *params): #p_tnum -- n_type
                     len_p_tynum*len_p_tynum*k + len_p_tynum*i + j
                     ]
 
-    _plot_dist(pos_x, pos_y, pos_z, max_particles, len_p_tynum)
+    #_plot_dist(pos_x, pos_y, pos_z, max_particles, len_p_tynum)
 
-    return pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, interact_matrix
+    return pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, interact_matrix, max_particles
 
 
 if __name__ == '__main__':
