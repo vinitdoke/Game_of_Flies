@@ -77,6 +77,11 @@ def _create_sample_arrays(n):
 
 if __name__ == "__main__":
     # print(_create_sample_arrays(10))
-    generate_scatter_plots(_create_sample_arrays(100), 'output/images/')
-    images = AllImagesFromDIrectory('output/images')
-    generateVideofromImages(images, 'output/images', 'output/video.mp4')
+
+    data = np.load('vid.npz')
+    print(data['arr_0'])
+
+
+    # generate_scatter_plots(_create_sample_arrays(100), 'output/images/')
+    # images = AllImagesFromDIrectory('output/images')
+    # generateVideofromImages(images, 'output/images', 'output/video.mp4')

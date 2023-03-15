@@ -40,7 +40,7 @@ def _plot_dist(pos_x, pos_y, pos_z,
 
 
 def initialise(n_type, *params): #p_tnum -- n_type
-    max_particles = 1000  # max particle of a single kind
+    max_particles = 10  # max particle of a single kind
     n_params = len(params)
     len_p_tynum = len(n_type)
     dist_params = int(n_params/(len_p_tynum*len_p_tynum))
