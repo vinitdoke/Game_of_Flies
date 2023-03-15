@@ -54,6 +54,8 @@ def _benchmark(sample_input):
     plt.legend()
     plt.grid()
     plt.show()
+    plt.pause(0.1)
+    plt.close()
     # plt.savefig('jit_vs_list.png', dpi=500)
 
 
