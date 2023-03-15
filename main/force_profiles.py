@@ -2,6 +2,7 @@ import numpy as np
 import numba
 import matplotlib.pyplot as plt
 
+# TODO: Benchmark individual njitted functions and functions in a python list
 
 def _plot_force_function(force_function, r_max, ij):
     """
@@ -35,11 +36,11 @@ def wrap_clusters_force_distance(*args):
         # TODO: simpler check for region
         # TODO: precalculate the values
 
-        if 0 < dist <= args[0]:
+        if 0 <= dist < args[0]:
             return -args[2] / args[0] * dist + args[2]
         elif args[0] <= dist < (args[0] + args[1]) / 2:
             return 2 * args[3] / (args[1] - args[0]) * (dist - args[0])
-        elif (args[0] + args[1]) / 2 <= dist <= args[1]:
+        elif (args[0] + args[1]) / 2 <= dist < args[1]:
             return 2 * args[3] / (args[1] - args[0]) * (args[1] - dist)
         else:
             return 0
