@@ -19,8 +19,6 @@ def accelerator(
         "vel_z"  : array,
         "limits" : tuple (min, max),
         "n_type_array" : ndarray,
-        
-
         }
     """
     pass

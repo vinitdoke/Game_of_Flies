@@ -1,0 +1,8 @@
+def integrate(
+        
+):
+    """
+    Inputs :
+    
+    """
+    pass

@@ -68,6 +68,9 @@ def all_force_functions(profile_name: str, *params):
         # n_types = len(params)
         pass
 
+    elif profile_name == "null_profile":
+        pass
+
     return matrix_of_functions
 
 

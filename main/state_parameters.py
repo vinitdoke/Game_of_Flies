@@ -21,6 +21,7 @@
 # TODO change all names to full
 # TODO return dictionary of all data
 # TODO range defualt
+# TODO all arrays as ndarray
 
 
 import numpy as np
