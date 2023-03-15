@@ -1,9 +1,61 @@
 import numpy as np
 import numba
 import matplotlib.pyplot as plt
+from time import perf_counter
 
 
 # TODO: Benchmark individual njitted functions and functions in a python list
+
+@numba.njit
+def _sampleJit(dist):
+    if 0 <= dist < 0.2:
+        return 1.0 / 0.2 * dist + 1.0
+    elif 0.2 <= dist < (0.2 + 2.0) / 2:
+        return 2 * 1.0 / (2.0 - 0.2) * (dist - 0.2)
+    elif (0.2 + 2.0) / 2 <= dist < 2.0:
+        return 2 * 1.0 / (2.0 - 0.2) * (2.0 - dist)
+    else:
+        return 0
+
+
+def _benchmark(sample_input):
+    """
+    :return: None
+    """
+    n_vals = [10 ** i for i in range(1, 7)]
+    timings_mof = []
+    timings_jit = []
+    i, j = 1, 1
+    mof = all_force_functions("cluster_distance_input", *sample_input)
+
+    # dry runs
+    mof[i][j](1.0)
+    _sampleJit(1.0)
+
+    for n in n_vals:
+        dist_input = np.random.uniform(0, sample_input[i][j][1], n)
+        start = perf_counter()
+        for dist in dist_input:
+            mof[i][j](dist)
+        end = perf_counter()
+        timings_mof.append(end - start)
+        dist_input = np.random.uniform(0, 2.0, n)
+        start = perf_counter()
+        for dist in dist_input:
+            _sampleJit(dist)
+        end = perf_counter()
+        timings_jit.append(end - start)
+
+    plt.loglog(n_vals, timings_mof, '-o', label='mof')
+    plt.loglog(n_vals, timings_jit, '-o', label='jit')
+    plt.title('Jitted Functions : Individual v/s List')
+    plt.xlabel('n')
+    plt.ylabel('time')
+    plt.legend()
+    plt.grid()
+    plt.show()
+    # plt.savefig('jit_vs_list.png', dpi=500)
+
 
 def _plot_force_function(force_function, r_max, ij):
     """
@@ -33,7 +85,6 @@ def wrap_clusters_force_distance(*args):
         :param dist: float
         :return: force value
         """
-        # TODO: add a check for the input
         # TODO: simpler check for region
         # TODO: precalculate the values
 
@@ -82,11 +133,12 @@ if __name__ == "__main__":
     sample_input[:, :, 0] = sample_input[:, :, 1] - 2
     # sample_input = [[[1, 2, 3, 4], [5, 6, 7, 8]],
     #                 [[9, 10, 11, 12], [13, 14, 15, 16]]]
-    mof = all_force_functions("cluster_distance_input", *sample_input)
-    print('mof_shape = ', np.shape(mof))
-    print(sample_input)
+    # mof = all_force_functions("cluster_distance_input", *sample_input)
+    # print('mof_shape = ', np.shape(mof))
+    # print(sample_input)
 
-    print(type(mof))
+    # print(type(mof))
+    _benchmark(sample_input)
     # for i in range(n_type):
     #     for j in range(n_type):
     #         _plot_force_function(mof[i][j], sample_input[i][j][1], (i, j))
