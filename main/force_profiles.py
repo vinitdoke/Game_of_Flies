@@ -2,6 +2,7 @@ import numpy as np
 import numba
 import matplotlib.pyplot as plt
 
+
 # TODO: Benchmark individual njitted functions and functions in a python list
 
 def _plot_force_function(force_function, r_max, ij):
@@ -86,6 +87,6 @@ if __name__ == "__main__":
     print(sample_input)
 
     print(type(mof))
-    #for i in range(n_type):
-        #for j in range(n_type):
-            #_plot_force_function(mof[i][j], sample_input[i][j][1], (i, j))
+    # for i in range(n_type):
+    #     for j in range(n_type):
+    #         _plot_force_function(mof[i][j], sample_input[i][j][1], (i, j))
