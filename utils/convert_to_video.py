@@ -46,13 +46,13 @@ def generate_scatter_plots(list_of_arrays, dir_path, limits=(0, 1)):
     """
     :param list_of_arrays:
     :param dir_path:
-    :param limits: tuple of (min, max) values for x and y axes
+    :param limits: tuple of (max_x, max_y) values for x and y axes
     :return:
     """
     for i, array in tqdm(enumerate(list_of_arrays)):
         plt.scatter(array[:, 0], array[:, 1], s=1)
-        plt.xlim(limits[0], limits[1])
-        plt.ylim(limits[0], limits[1])
+        plt.xlim(0, limits[0])
+        plt.ylim(0, limits[1])
         plt.tick_params(left=False, right=False, labelleft=False,
                         labelbottom=False, bottom=False)
         plt.savefig(f'{dir_path}{i:03}.png', dpi=300)
