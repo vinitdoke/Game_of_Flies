@@ -31,16 +31,20 @@ import matplotlib.pyplot as plt
 
 def _plot_dist(pos_x, pos_y, pos_z,
                max_particles, len_p_tynum):
+    plt.clf()
     for i in range(len_p_tynum):
         plt.scatter(pos_x[i*max_particles: (i+1)*max_particles],
                     pos_y[i*max_particles: (i+1)*max_particles], label = f"Particle {i}")
+    plt.xlim(-1, 101)
+    plt.ylim(-1, 101)
     plt.title('Particle Distribution')
-    plt.legend()
-    plt.show()
+    #plt.legend()
+    plt.draw()
+    plt.pause(0.1)
 
 
 def initialise(n_type, *params): #p_tnum -- n_type
-    max_particles = 10  # max particle of a single kind
+    max_particles = 1000  # max particle of a single kind
     n_params = len(params)
     len_p_tynum = len(n_type)
     dist_params = int(n_params/(len_p_tynum*len_p_tynum))

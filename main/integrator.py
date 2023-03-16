@@ -5,6 +5,9 @@ from force_profiles import all_force_functions
 from state_parameters import initialise
 from acceleration_updater import accelerator
 from state_parameters import _plot_dist
+import matplotlib.pyplot as plt
+
+fac = 0.9
 
 #@numba.njit
 def integrate(
@@ -33,28 +36,43 @@ def integrate(
 
     pos_x += vel_x * 0.5 * timestep
     pos_y += vel_y * 0.5 * timestep
-    pos_z += vel_z * 0.5 * timestep
+    #pos_z += vel_z * 0.5 * timestep
 
     vel_x += acc_x * timestep
     vel_y += acc_y * timestep
-    vel_z += acc_z * timestep
+    #vel_z += acc_z * timestep
+
+    vel_x *= fac
+    vel_y *= fac
+    #vel_z *= fac
 
     pos_x += vel_x * 0.5 * timestep
     pos_y += vel_y * 0.5 * timestep
-    pos_z += vel_z * 0.5 * timestep
+    #pos_z += vel_z * 0.5 * timestep
+
+    pos_x[pos_x < 0] += 100
+    pos_x[pos_x > 100] -= 100
+
+    pos_y[pos_y < 0] += 100
+    pos_y[pos_y > 100] -= 100
     
     pass
 
 n_type = 3
-sample_input = np.random.randint(1, 10, (n_type, n_type, 4))
+sample_input = np.random.randint(5, 10, (n_type, n_type, 4))
 sample_input[:, :, 2] *= -1
 sample_input[:, :, 0] = sample_input[:, :, 1] - 2
 
 mof = all_force_functions("cluster_distance_input", *sample_input)
 
-n_type_arr = np.array([10, 10, 10])
+n_type_arr = np.array([300, 50, 50])
 
 pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, interact_matrix, max_particles = initialise(n_type_arr)
+
+#vel_x = np.zeros_like(pos_x)
+#vel_y = np.zeros_like(pos_x)
+#vel_z = np.zeros_like(pos_x)
+
 
 acc_x = np.zeros_like(vel_x)
 acc_y = np.zeros_like(vel_x)
@@ -62,10 +80,12 @@ acc_z = np.zeros_like(vel_x)
 
 output = []
 
-for i in range(2):
-    out = np.vstack([pos_x, pos_y]).T
-    output.append(out)
-    integrate(mof, pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, (100, 100), 10, n_type_arr, max_particles, acc_x, acc_y, acc_z, 2)
-    #_plot_dist(pos_x, pos_y, pos_z, max_particles, 3)
+plt.figure(figsize=(12, 12), dpi=80)
+for i in range(10000):
+    #out = np.vstack([pos_x, pos_y]).T
+    #output.append(out)
+    integrate(mof, pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, (100, 100), 10, n_type_arr, max_particles, acc_x, acc_y, acc_z, 0.03)
+    if i % 10 == 0:
+        _plot_dist(pos_x, pos_y, pos_z, max_particles, 3)
 
-np.savez("vid", result = output)
+#np.savez("vid", result = output)
