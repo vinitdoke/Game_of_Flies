@@ -123,7 +123,7 @@ def all_force_functions(profile_name: str, *params):
 
     return matrix_of_functions
 
-
+@numba.njit
 def general_force_function(profile_type, input_vect: list, *args):
     """
     :param profile_type: int
