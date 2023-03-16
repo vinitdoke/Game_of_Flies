@@ -8,16 +8,24 @@ from state_parameters import initialise, _plot_dist
 color_list = ['red', 'blue', 'green', 'yellow', 'black', 'orange', 'purple']
 
 
-def setup_plotter(n_types, limits=(100, 100)):
+def setup_plotter(n_types: int, limits=(100, 100)):
+    if n_types > len(color_list):
+        raise ValueError("Too many types for current color list")
+
     plt.ion()
-    fig = plt.figure()
+    fig = plt.figure(dpi=100)
+
     ax = fig.add_subplot(111)
     ax.set_xlim(0, limits[0])
     ax.set_ylim(0, limits[1])
+    # turn off ticks
+    ax.tick_params(axis='both', which='both', length=0)
+    # set aspect ratio
     # ax.set_aspect('equal')
+
     scatters = []
     for i in range(n_types):
-        scatters.append(ax.scatter([], [], c=color_list[i]))
+        scatters.append(ax.scatter([], [], s=2, c=color_list[i]))
     plt.show()
     return fig, scatters
 
@@ -27,8 +35,9 @@ def update_plot(fig, scatters, pos_x, pos_y, pos_z, max_particles, n_type):
     for i in range(n_type):
         # ax.scatter(pos_x[i * max_particles: (i + 1) * max_particles],
         #            pos_y[i * max_particles: (i + 1) * max_particles])
-        scatters[i].set_offsets(np.vstack([pos_x[i * max_particles: (i + 1) *max_particles],
-                                           pos_y[i * max_particles: (i + 1) * max_particles]]).T)
+        scatters[i].set_offsets(
+            np.vstack([pos_x[i * max_particles: (i + 1) * max_particles],
+                       pos_y[i * max_particles: (i + 1) * max_particles]]).T)
     fig.canvas.draw()
     fig.canvas.flush_events()
 
@@ -45,8 +54,8 @@ if __name__ == "__main__":
 
     n_type_arr = np.array([100, 100, 100])
 
-    pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, interact_matrix, max_particles = initialise(
-        n_type_arr)
+    pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, interact_matrix, max_particles = \
+        initialise(n_type_arr)
 
     vel_x = np.zeros_like(pos_x)
     vel_y = np.zeros_like(pos_x)
@@ -56,9 +65,9 @@ if __name__ == "__main__":
     acc_y = np.zeros_like(vel_x)
     acc_z = np.zeros_like(vel_x)
 
+    print("Initialised")
     # run simulation
-    # plt.figure(figsize=(12, 12), dpi=80)
-    fig, ax = setup_plotter(n_type)
+    fig, scatters = setup_plotter(n_type)
 
     for i in range(10000):
         # out = np.vstack([pos_x, pos_y]).T
@@ -74,4 +83,4 @@ if __name__ == "__main__":
                   10, n_type_arr, max_particles, acc_x, acc_y, acc_z, dt)
         if i % 1 == 0:
             # _plot_dist(pos_x, pos_y, pos_z, max_particles, 3)
-            update_plot(fig, ax, pos_x, pos_y, pos_z, max_particles, n_type)
+            update_plot(fig, scatters, pos_x, pos_y, pos_z, max_particles, n_type)

@@ -69,8 +69,8 @@ if __name__ == "__main__":
 
     n_type_arr = np.array([100, 100, 100])
 
-    pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, interact_matrix, max_particles = initialise(
-        n_type_arr)
+    pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, interact_matrix, max_particles = \
+        initialise(n_type_arr)
 
     vel_x = np.zeros_like(pos_x)
     vel_y = np.zeros_like(pos_x)
@@ -84,8 +84,6 @@ if __name__ == "__main__":
 
     plt.figure(figsize=(12, 12), dpi=80)
     for i in range(10000):
-        # out = np.vstack([pos_x, pos_y]).T
-        # output.append(out)
         dt = np.sqrt(np.max(vel_x * vel_x + vel_y * vel_y))
 
         if dt > 1e-15:
@@ -97,5 +95,3 @@ if __name__ == "__main__":
                   10, n_type_arr, max_particles, acc_x, acc_y, acc_z, dt)
         if i % 1 == 0:
             _plot_dist(pos_x, pos_y, pos_z, max_particles, 3)
-
-    # np.savez("vid", result = output)
