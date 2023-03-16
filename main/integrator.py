@@ -7,7 +7,7 @@ from acceleration_updater import accelerator
 from state_parameters import _plot_dist
 import matplotlib.pyplot as plt
 
-fac = 0.92
+fac = 0.9
 
 
 # @numba.njit
