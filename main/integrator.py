@@ -27,7 +27,7 @@ def integrate(
         acc_y: np.ndarray,
         acc_z: np.ndarray,
         timestep
-):
+) -> None:
     """
     Inputs :
     
@@ -55,8 +55,6 @@ def integrate(
 
     pos_y[pos_y < 0] += 100
     pos_y[pos_y > 100] -= 100
-    
-    pass
 
 n_type = 3
 sample_input = np.random.randint(5, 10, (n_type, n_type, 4))
@@ -65,7 +63,7 @@ sample_input[:, :, 0] = sample_input[:, :, 1] - 2
 
 mof = all_force_functions("cluster_distance_input", *sample_input)
 
-n_type_arr = np.array([500, 100, 100])
+n_type_arr = np.array([1000, 1000, 1000])
 
 pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, interact_matrix, max_particles = initialise(n_type_arr)
 
@@ -93,7 +91,7 @@ for i in range(10000):
     
 
     integrate(mof, pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, (100, 100), 10, n_type_arr, max_particles, acc_x, acc_y, acc_z, dt)
-    if i % 10 == 0:
+    if i % 1 == 0:
         _plot_dist(pos_x, pos_y, pos_z, max_particles, 3)
 
 #np.savez("vid", result = output)

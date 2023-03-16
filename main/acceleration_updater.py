@@ -7,6 +7,9 @@ import time
 
 # TODO: Apply periodic boundary condition
 
+lim = 0
+a = 5
+
 @numba.njit
 def resolve_particle_group(
         force_function,
@@ -48,6 +51,15 @@ def resolve_particle_group(
                     acc_x[p1] -= a_x
                     acc_y[p1] -= a_y
 
+                    if pos_x_1 < lim:
+                        acc_x[p1] += a
+                    elif pos_x_1 > 100 - lim:
+                        acc_x[p1] -= a
+
+                    if pos_y_1 < lim:
+                        acc_y[p1] += a
+                    elif pos_y_1 > 100 - lim:
+                        acc_y[p1] -= a
 
 def accelerator(
         matrix_of_functions: list,
