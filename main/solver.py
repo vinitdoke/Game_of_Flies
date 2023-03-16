@@ -58,14 +58,28 @@ def update_plot(fig, scatters, pos_x, pos_y, pos_z, max_particles, n_type):
 if __name__ == "__main__":
 
     # initialise params
-    n_type = 3
-    sample_input = np.random.randint(5, 10, (n_type, n_type, 4))
+    n_type = 2
+    sample_input = np.random.randint(6, 10, (n_type, n_type, 4))
     sample_input[:, :, 2] *= -1
-    sample_input[:, :, 0] = sample_input[:, :, 1] - 2
+    sample_input[:, :, 0] = sample_input[:, :, 1] - 5
+    sample_input[:, :, 3] = (sample_input[:, :, 3] - 8) * 8
+
+    sample_input[:, :, 0] = 7
+    sample_input[:, :, 1] = 15
+    sample_input[:, :, 2] = -5
+    sample_input[0, 0, 3], sample_input[1, 1, 3] = 16, 9
+    sample_input[0, 1, 3] = -8
+    sample_input[1, 0, 3] = 10
+
 
     mof = all_force_functions("cluster_distance_input", *sample_input)
 
-    n_type_arr = np.array([1000, 1000, 1000])
+    dummy = np.zeros(10)
+    np_dummy = np.array([5, 5])
+    integrate(mof, dummy, dummy, dummy, dummy, dummy, dummy, (100, 100), 
+            10, np_dummy, 5, dummy, dummy, dummy, 1) # dumb run
+
+    n_type_arr = np.array([1000, 1000])
 
     pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, interact_matrix, max_particles = \
         initialise(n_type_arr)
@@ -78,9 +92,10 @@ if __name__ == "__main__":
     acc_y = np.zeros_like(vel_x)
     acc_z = np.zeros_like(vel_x)
 
-    print("Initialised")
     # run simulation
     fig, scatters = setup_plotter(n_type, dark_mode=True)
+
+    print("Initialised")
 
     for i in range(10000):
         # out = np.vstack([pos_x, pos_y]).T
@@ -88,12 +103,12 @@ if __name__ == "__main__":
         dt = np.sqrt(np.max(vel_x * vel_x + vel_y * vel_y))
 
         if dt > 1e-15:
-            dt = 0.4 / dt
+            dt = 0.5 / dt
         else:
             dt = 0.1
 
         integrate(mof, pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, (100, 100),
-                  10, n_type_arr, max_particles, acc_x, acc_y, acc_z, dt)
+                  np.max(sample_input[:, :, 1]), n_type_arr, max_particles, acc_x, acc_y, acc_z, dt)
         if i % 1 == 0:
             # _plot_dist(pos_x, pos_y, pos_z, max_particles, 3)
             update_plot(fig, scatters, pos_x, pos_y, pos_z, max_particles, n_type)

@@ -22,7 +22,7 @@ def resolve_particle_group(
         vel_x: np.ndarray,
         vel_y: np.ndarray,
         vel_z: np.ndarray,
-        limits: tuple,
+        limits: np.ndarray,
         r_max: float,  # max distance at which particles interact
         n_type_array: np.ndarray,
         max_particles_per_type: int,
@@ -40,6 +40,15 @@ def resolve_particle_group(
             if i1 != i2:
                 pos_x_2 = pos_x[p2]
                 pos_y_2 = pos_y[p2]
+                # Assumes r_max < min(limits) / 3
+                if pos_x_1 < r_max and pos_x_2 > limits[0] - r_max:
+                    pos_x_2 -= limits[0]
+                elif pos_x_2 < r_max and pos_x_1 > limits[0] - r_max:
+                    pos_x_2 += limits[0]
+                if pos_y_1 < r_max and pos_y_2 > limits[1] - r_max:
+                    pos_y_2 -= limits[1]
+                elif pos_y_2 < r_max and pos_y_1 > limits[1] - r_max:
+                    pos_y_2 += limits[1]
 
                 distance = (pos_x_1 - pos_x_2) * (pos_x_1 - pos_x_2) + (
                             pos_y_1 - pos_y_2) * (pos_y_1 - pos_y_2)
@@ -53,7 +62,7 @@ def resolve_particle_group(
                     acc_x[p1] -= a_x
                     acc_y[p1] -= a_y
 
-                    if pos_x_1 < lim:
+                    '''if pos_x_1 < lim:
                         acc_x[p1] += a
                     elif pos_x_1 > 100 - lim:
                         acc_x[p1] -= a
@@ -61,7 +70,9 @@ def resolve_particle_group(
                     if pos_y_1 < lim:
                         acc_y[p1] += a
                     elif pos_y_1 > 100 - lim:
-                        acc_y[p1] -= a
+                        acc_y[p1] -= a'''
+                    
+
 
 
 def accelerator(
@@ -106,7 +117,7 @@ def accelerator(
         for j2 in range(num_particle_types):
             force_function = matrix_of_functions[j1][j2]
             resolve_particle_group(force_function, j1, j2, pos_x, pos_y, pos_z,
-                                   vel_x, vel_y, vel_z, (100, 100), 10,
+                                   vel_x, vel_y, vel_z, np.array(limits), r_max,
                                    n_type_array, max_particles_per_type, acc_x,
                                    acc_y, acc_z)
 
