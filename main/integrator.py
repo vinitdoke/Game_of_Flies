@@ -67,7 +67,7 @@ if __name__ == "__main__":
 
     mof = all_force_functions("cluster_distance_input", *sample_input)
 
-    n_type_arr = np.array([1000, 1000, 1000])
+    n_type_arr = np.array([100, 100, 100])
 
     pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, interact_matrix, max_particles = initialise(
         n_type_arr)
