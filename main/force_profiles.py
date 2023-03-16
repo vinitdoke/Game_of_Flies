@@ -4,8 +4,6 @@ import matplotlib.pyplot as plt
 from time import perf_counter
 
 
-# TODO: Benchmark individual njitted functions and functions in a python list
-
 @numba.njit
 def _sampleJit(dist):
     if 0 <= dist < 0.2:
@@ -124,6 +122,32 @@ def all_force_functions(profile_name: str, *params):
         pass
 
     return matrix_of_functions
+
+
+def general_force_function(profile_type, input_vect: list, *args):
+    """
+    :param profile_type: int
+    :   1 : clusters_distance_input
+    :   2 : clusters_position_input
+    :param input_vect: list
+    :   1 : [dist]
+    :param args: r_min, r_max, f_min, f_max
+    :return: force value
+    """
+
+    if profile_type == 0:
+        if 0 <= input_vect[0] < args[0]:
+            return -args[2] / args[0] * input_vect[0] + args[2]
+        elif args[0] <= input_vect[0] < (args[0] + args[1]) / 2:
+            return 2 * args[3] / (args[1] - args[0]) * (input_vect[0] -
+                                                        args[0])
+        elif (args[0] + args[1]) / 2 <= input_vect[0] < args[1]:
+            return 2 * args[3] / (args[1] - args[0]) * (args[1] -
+                                                        input_vect[0])
+        else:
+            return 0
+    elif profile_type == 1:
+        raise NotImplementedError("Position Input not implemented yet")
 
 
 if __name__ == "__main__":
