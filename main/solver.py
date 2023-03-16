@@ -5,26 +5,30 @@ from force_profiles import all_force_functions
 from integrator import integrate
 from state_parameters import initialise, _plot_dist
 
+color_list = ['red', 'blue', 'green', 'yellow', 'black', 'orange', 'purple']
 
-def setup_plotter():
+
+def setup_plotter(n_types, limits=(100, 100)):
     plt.ion()
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.set_xlim(0, 100)
-    ax.set_ylim(0, 100)
-    ax.set_aspect('equal')
+    ax.set_xlim(0, limits[0])
+    ax.set_ylim(0, limits[1])
+    # ax.set_aspect('equal')
+    scatters = []
+    for i in range(n_types):
+        scatters.append(ax.scatter([], [], c=color_list[i]))
     plt.show()
-    return fig, ax
+    return fig, scatters
 
 
-def update_plot(fig, ax, pos_x, pos_y, pos_z, max_particles, n_type):
-    ax.clear()
-    ax.set_xlim(0, 100)
-    ax.set_ylim(0, 100)
-    ax.set_aspect('equal')
+def update_plot(fig, scatters, pos_x, pos_y, pos_z, max_particles, n_type):
+    # scatter.clear()
     for i in range(n_type):
-        ax.scatter(pos_x[i * max_particles: (i + 1) * max_particles],
-                   pos_y[i * max_particles: (i + 1) * max_particles])
+        # ax.scatter(pos_x[i * max_particles: (i + 1) * max_particles],
+        #            pos_y[i * max_particles: (i + 1) * max_particles])
+        scatters[i].set_offsets(np.vstack([pos_x[i * max_particles: (i + 1) *max_particles],
+                                           pos_y[i * max_particles: (i + 1) * max_particles]]).T)
     fig.canvas.draw()
     fig.canvas.flush_events()
 
@@ -54,7 +58,7 @@ if __name__ == "__main__":
 
     # run simulation
     # plt.figure(figsize=(12, 12), dpi=80)
-    fig, ax = setup_plotter()
+    fig, ax = setup_plotter(n_type)
 
     for i in range(10000):
         # out = np.vstack([pos_x, pos_y]).T
