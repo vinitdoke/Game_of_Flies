@@ -7,7 +7,7 @@ from acceleration_updater import accelerator
 from state_parameters import _plot_dist
 import matplotlib.pyplot as plt
 
-fac = 0.9
+fac = 0.92
 
 #@numba.njit
 def integrate(
@@ -65,13 +65,13 @@ sample_input[:, :, 0] = sample_input[:, :, 1] - 2
 
 mof = all_force_functions("cluster_distance_input", *sample_input)
 
-n_type_arr = np.array([300, 50, 50])
+n_type_arr = np.array([500, 100, 100])
 
 pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, interact_matrix, max_particles = initialise(n_type_arr)
 
-#vel_x = np.zeros_like(pos_x)
-#vel_y = np.zeros_like(pos_x)
-#vel_z = np.zeros_like(pos_x)
+vel_x = np.zeros_like(pos_x)
+vel_y = np.zeros_like(pos_x)
+vel_z = np.zeros_like(pos_x)
 
 
 acc_x = np.zeros_like(vel_x)
@@ -84,7 +84,15 @@ plt.figure(figsize=(12, 12), dpi=80)
 for i in range(10000):
     #out = np.vstack([pos_x, pos_y]).T
     #output.append(out)
-    integrate(mof, pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, (100, 100), 10, n_type_arr, max_particles, acc_x, acc_y, acc_z, 0.03)
+    dt = np.sqrt(np.max(vel_x * vel_x + vel_y * vel_y))
+    
+    if dt > 1e-15:
+        dt = 0.4 / dt
+    else:
+        dt = 0.1
+    
+
+    integrate(mof, pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, (100, 100), 10, n_type_arr, max_particles, acc_x, acc_y, acc_z, dt)
     if i % 10 == 0:
         _plot_dist(pos_x, pos_y, pos_z, max_particles, 3)
 
