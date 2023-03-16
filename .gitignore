@@ -1,1 +1,3 @@
 utils/output/
+.idea
+main/__pycache__
