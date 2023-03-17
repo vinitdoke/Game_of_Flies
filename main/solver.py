@@ -106,7 +106,7 @@ def update_plot(fig, scatters, pos_x, pos_y, pos_z, max_particles, n_type,
     fig.canvas.flush_events()
 
 
-def main():
+def main(iterations=10000):
     # initialise params
     n_type = 3
     sample_input = np.random.randint(6, 10, (n_type, n_type, 4))
@@ -146,7 +146,7 @@ def main():
 
     print("Initialised")
 
-    for i in range(10000):
+    for i in range(iterations):
         # out = np.vstack([pos_x, pos_y]).T
         # output.append(out)
         dt = np.sqrt(np.max(vel_x * vel_x + vel_y * vel_y))
@@ -163,6 +163,8 @@ def main():
             # _plot_dist(pos_x, pos_y, pos_z, max_particles, 3)
             update_plot(fig, scatters, pos_x, pos_y, None, max_particles,
                         n_type, (100, 100))
+
+    plt.close()
 
 
 if __name__ == "__main__":
