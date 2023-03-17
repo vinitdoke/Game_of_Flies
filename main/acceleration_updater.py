@@ -51,7 +51,7 @@ def resolve_particle_group(
                     pos_y_2 += limits[1]
 
                 distance = (pos_x_1 - pos_x_2) * (pos_x_1 - pos_x_2) + (
-                            pos_y_1 - pos_y_2) * (pos_y_1 - pos_y_2)
+                        pos_y_1 - pos_y_2) * (pos_y_1 - pos_y_2)
 
                 if 1e-10 < distance < r_max * r_max:  # 1e-10 is r_min**2
                     distance = np.sqrt(distance)
@@ -71,8 +71,6 @@ def resolve_particle_group(
                         acc_y[p1] += a
                     elif pos_y_1 > 100 - lim:
                         acc_y[p1] -= a'''
-                    
-
 
 
 def accelerator(
@@ -117,7 +115,8 @@ def accelerator(
         for j2 in range(num_particle_types):
             force_function = matrix_of_functions[j1][j2]
             resolve_particle_group(force_function, j1, j2, pos_x, pos_y, pos_z,
-                                   vel_x, vel_y, vel_z, np.array(limits), r_max,
+                                   vel_x, vel_y, vel_z, np.array(limits),
+                                   r_max,
                                    n_type_array, max_particles_per_type, acc_x,
                                    acc_y, acc_z)
 

@@ -6,11 +6,21 @@ from integrator import integrate
 from state_parameters import initialise, _plot_dist
 
 # TODO : Benchmark Function
+# TODO : Profiling Function
 
 color_list = ['red', 'blue', 'green', 'yellow', 'black', 'orange', 'purple']
 
 
-def setup_plotter(n_types: int, limits=(100, 100), dark_mode=False, extra=False):
+def _profiling():
+    pass
+
+
+def _benchmark():
+    pass
+
+
+def setup_plotter(n_types: int, limits=(100, 100), dark_mode=False,
+                  extra=False):
     if n_types > len(color_list):
         raise ValueError("Too many types for current color list")
 
@@ -51,10 +61,13 @@ def setup_plotter(n_types: int, limits=(100, 100), dark_mode=False, extra=False)
     plt.show()
     return fig, scatters
 
+
 extra_pos_x = np.array([])
 extra_pos_y = np.array([])
 
-def update_plot(fig, scatters, pos_x, pos_y, pos_z, max_particles, n_type, limits):
+
+def update_plot(fig, scatters, pos_x, pos_y, pos_z, max_particles, n_type,
+                limits):
     # scatter.clear()
     for i in range(n_type):
         # ax.scatter(pos_x[i * max_particles: (i + 1) * max_particles],
@@ -70,22 +83,22 @@ def update_plot(fig, scatters, pos_x, pos_y, pos_z, max_particles, n_type, limit
         l = n_type * max_particles
 
         extra_pos_x[0:l] = pos_x - limits[0]
-        extra_pos_x[l:2*l] = pos_x
-        extra_pos_x[2*l:3*l] = pos_x + limits[0]
-        extra_pos_x[3*l:4*l] = pos_x + limits[0]
-        extra_pos_x[4*l:5*l] = pos_x + limits[0]
-        extra_pos_x[5*l:6*l] = pos_x
-        extra_pos_x[6*l:7*l] = pos_x - limits[0]
-        extra_pos_x[7*l:8*l] = pos_x - limits[0]
+        extra_pos_x[l:2 * l] = pos_x
+        extra_pos_x[2 * l:3 * l] = pos_x + limits[0]
+        extra_pos_x[3 * l:4 * l] = pos_x + limits[0]
+        extra_pos_x[4 * l:5 * l] = pos_x + limits[0]
+        extra_pos_x[5 * l:6 * l] = pos_x
+        extra_pos_x[6 * l:7 * l] = pos_x - limits[0]
+        extra_pos_x[7 * l:8 * l] = pos_x - limits[0]
 
         extra_pos_y[0:l] = pos_y - limits[1]
-        extra_pos_y[l:2*l] = pos_y - limits[1]
-        extra_pos_y[2*l:3*l] = pos_y - limits[1]
-        extra_pos_y[3*l:4*l] = pos_y
-        extra_pos_y[4*l:5*l] = pos_y + limits[1]
-        extra_pos_y[5*l:6*l] = pos_y + limits[1]
-        extra_pos_y[6*l:7*l] = pos_y + limits[1]
-        extra_pos_y[7*l:8*l] = pos_y
+        extra_pos_y[l:2 * l] = pos_y - limits[1]
+        extra_pos_y[2 * l:3 * l] = pos_y - limits[1]
+        extra_pos_y[3 * l:4 * l] = pos_y
+        extra_pos_y[4 * l:5 * l] = pos_y + limits[1]
+        extra_pos_y[5 * l:6 * l] = pos_y + limits[1]
+        extra_pos_y[6 * l:7 * l] = pos_y + limits[1]
+        extra_pos_y[7 * l:8 * l] = pos_y
 
         scatters[n_type].set_offsets(
             np.vstack([extra_pos_x, extra_pos_y]).T)
@@ -93,8 +106,7 @@ def update_plot(fig, scatters, pos_x, pos_y, pos_z, max_particles, n_type, limit
     fig.canvas.flush_events()
 
 
-if __name__ == "__main__":
-
+def main():
     # initialise params
     n_type = 3
     sample_input = np.random.randint(6, 10, (n_type, n_type, 4))
@@ -109,15 +121,14 @@ if __name__ == "__main__":
     sample_input[0, 1, 3] = -8
     sample_input[1, 0, 3] = 10'''
 
-
     mof = all_force_functions("cluster_distance_input", *sample_input)
 
     dummy = np.zeros(15)
     np_dummy = np.array([5, 5, 5])
-    integrate(mof, dummy, dummy, dummy, dummy, dummy, dummy, (100, 100), 
-            10, np_dummy, 5, dummy, dummy, dummy, 1) # dumb run
+    integrate(mof, dummy, dummy, dummy, dummy, dummy, dummy, (100, 100),
+              10, np_dummy, 5, dummy, dummy, dummy, 1)  # dumb run
 
-    n_type_arr = np.array([10000, 100, 100])
+    n_type_arr = np.array([100, 100, 100])
 
     pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, interact_matrix, max_particles = \
         initialise(n_type_arr)
@@ -146,7 +157,13 @@ if __name__ == "__main__":
             dt = 0.1
 
         integrate(mof, pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, (100, 100),
-                  np.max(sample_input[:, :, 1]), n_type_arr, max_particles, acc_x, acc_y, acc_z, dt)
+                  np.max(sample_input[:, :, 1]), n_type_arr, max_particles,
+                  acc_x, acc_y, acc_z, dt)
         if i % 1 == 0:
             # _plot_dist(pos_x, pos_y, pos_z, max_particles, 3)
-            update_plot(fig, scatters, pos_x, pos_y, None, max_particles, n_type, (100, 100))
+            update_plot(fig, scatters, pos_x, pos_y, None, max_particles,
+                        n_type, (100, 100))
+
+
+if __name__ == "__main__":
+    main()
