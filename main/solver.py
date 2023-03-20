@@ -128,7 +128,7 @@ def main(iterations=10000):
     integrate(mof, dummy, dummy, dummy, dummy, dummy, dummy, (100, 100),
               10, np_dummy, 5, dummy, dummy, dummy, 1)  # dumb run
 
-    n_type_arr = np.array([100, 100, 100])
+    n_type_arr = np.array([1000, 1000, 1000])
 
     pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, interact_matrix, max_particles = \
         initialise(n_type_arr)
