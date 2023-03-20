@@ -7,7 +7,7 @@
 #     1. Positions (pos_x, pos_y, pos_z)
 #     2. Velocities (vel_x, vel_y, vel_z)
 #     3. Type-Indices
-#     4. Parameter_matrix (n_type*n_type*3 (r_max, r_min, f_max) array)
+#     4. Parameter_matrix (n_type*n_type*5, (force_profile(0: clusters, 1: clustors, ....),r_min, r_max, f_min, f_max) array)
 #        r_min < r_max
 #        r_min != 0
 #        0 < f_max <= 1
@@ -39,7 +39,30 @@ def _plot_dist(pos_x, pos_y, pos_z,
     plt.show()
 
 
-def initialise(n_type, *params): #p_tnum -- n_type
+def initialise(n_type: np.ndarray, seed: int=0, *params):
+    """
+    input- n_type : np.array, seed,  limits : tuple(x,y),
+    output- 
+    state_variable_dict : dict
+        {
+        "pos_x"  : array,
+        "pos_y"  : array,
+        "pos_z"  : array,
+        "vel_x"  : array, init to 0
+        "vel_y"  : array, init to 0
+        "vel_z"  : array, init to 0
+        "acc_x"  : array, init to 0
+        "acc_y"  : array, init to 0
+        "acc_z"  : array, init to 0
+        "limits" : tuple (x_max, y_max),
+        "n_type_array" : ndarray,
+        "particle_type_indx_array" : ndarray,
+        "max_particles_per_type": int,
+        "parameter_matrix" : ndarray,
+        "max_rmax" : float
+        }
+    """
+     #p_tnum -- n_type
     max_particles = 1000  # max particle of a single kind
     n_params = len(params)
     len_p_tynum = len(n_type)
