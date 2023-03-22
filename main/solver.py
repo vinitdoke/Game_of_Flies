@@ -86,23 +86,23 @@ def update_plot(fig, scatters, ax, pos_x, pos_y, pos_z, num_particles, limits, t
             extra_pos_y = np.zeros_like(extra_pos_x)
         l = num_particles
 
-        extra_pos_x[0:l] = pos_x - limits[0]
-        extra_pos_x[l:2 * l] = pos_x
-        extra_pos_x[2 * l:3 * l] = pos_x + limits[0]
-        extra_pos_x[3 * l:4 * l] = pos_x + limits[0]
-        extra_pos_x[4 * l:5 * l] = pos_x + limits[0]
-        extra_pos_x[5 * l:6 * l] = pos_x
-        extra_pos_x[6 * l:7 * l] = pos_x - limits[0]
-        extra_pos_x[7 * l:8 * l] = pos_x - limits[0]
+        extra_pos_x[0:l] = pos_x[:l] - limits[0]
+        extra_pos_x[l:2 * l] = pos_x[:l]
+        extra_pos_x[2 * l:3 * l] = pos_x[:l] + limits[0]
+        extra_pos_x[3 * l:4 * l] = pos_x[:l] + limits[0]
+        extra_pos_x[4 * l:5 * l] = pos_x[:l] + limits[0]
+        extra_pos_x[5 * l:6 * l] = pos_x[:l]
+        extra_pos_x[6 * l:7 * l] = pos_x[:l] - limits[0]
+        extra_pos_x[7 * l:8 * l] = pos_x[:l] - limits[0]
 
-        extra_pos_y[0:l] = pos_y - limits[1]
-        extra_pos_y[l:2 * l] = pos_y - limits[1]
-        extra_pos_y[2 * l:3 * l] = pos_y - limits[1]
-        extra_pos_y[3 * l:4 * l] = pos_y
-        extra_pos_y[4 * l:5 * l] = pos_y + limits[1]
-        extra_pos_y[5 * l:6 * l] = pos_y + limits[1]
-        extra_pos_y[6 * l:7 * l] = pos_y + limits[1]
-        extra_pos_y[7 * l:8 * l] = pos_y
+        extra_pos_y[0:l] = pos_y[:l] - limits[1]
+        extra_pos_y[l:2 * l] = pos_y[:l] - limits[1]
+        extra_pos_y[2 * l:3 * l] = pos_y[:l] - limits[1]
+        extra_pos_y[3 * l:4 * l] = pos_y[:l]
+        extra_pos_y[4 * l:5 * l] = pos_y[:l] + limits[1]
+        extra_pos_y[5 * l:6 * l] = pos_y[:l] + limits[1]
+        extra_pos_y[6 * l:7 * l] = pos_y[:l] + limits[1]
+        extra_pos_y[7 * l:8 * l] = pos_y[:l]
 
         scatters[1].set_offsets(np.vstack([extra_pos_x, extra_pos_y]).T)
     fig.canvas.draw()
@@ -111,7 +111,7 @@ def update_plot(fig, scatters, ax, pos_x, pos_y, pos_z, num_particles, limits, t
 
 def main():
     # Initialise the state parameters
-    n_type_arr = [1000, 100, 100]
+    n_type_arr = [10000, 100, 100]
 
     init = initialise(n_type_arr)
 
@@ -130,40 +130,40 @@ def main():
     parameter_matrix = init["parameter_matrix"]
     r_max = init["max_rmax"]
 
-    parameter_matrix[0, :, :] *= 2
+    parameter_matrix[0, :, :] *= 3
     parameter_matrix[0, :, :] += 3
 
     parameter_matrix[1, :, :] *= 5
-    parameter_matrix[1, :, :] += 5
+    parameter_matrix[1, :, :] += 6
 
-    parameter_matrix[2, :, :] *= 2
-    parameter_matrix[2, :, :] += 3
+    parameter_matrix[2, :, :] *= 3
+    parameter_matrix[2, :, :] += 2
 
-    parameter_matrix[3, :, :] *= 2
-    parameter_matrix[3, :, :] += 8
+    parameter_matrix[3, :, :] *= 20
+    parameter_matrix[3, :, :] -= 10
 
     r_max = np.max(parameter_matrix[1,:,:])
 
     iterations = 10000
 
     # Initialise the plotter
-    fig, scatters, ax = setup_plotter(particle_type_index_array, num_particles)
+    fig, scatters, ax = setup_plotter(particle_type_index_array, num_particles, extra=False)
     phys_time = 0
     frame_time = 0
 
     # Run the simulation
     for i in range(iterations):
         start = time.perf_counter()
-        dt = np.sqrt(np.max(vel_x * vel_x + vel_y * vel_y))
-
+        dt = np.sqrt(np.max(vel_x[:num_particles] * vel_x[:num_particles] + vel_y[:num_particles] * vel_y[:num_particles]))
+        
         if dt > 1e-15:
-            dt = 0.01 / dt
+            dt = 0.4 / dt
         else:
             dt = 0.1
         integrate(pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, limits, r_max, num_particles,
                 parameter_matrix, particle_type_index_array, acc_x, acc_y, acc_z, dt)
         phys_end = time.perf_counter()
-        if i % 1 == 0:
+        if i % 5 == 0:
             update_plot(fig, scatters, ax, pos_x, pos_y, None, num_particles,
                         limits, timing = [phys_time, frame_time])
         frame_end = time.perf_counter()
