@@ -1,12 +1,15 @@
 from simulation import Simulation
-# from vis2d import Visualiser
 from vis2d import *
 
+# TODO set_limits() function in Visualiser class
+
 if __name__ == "__main__":
-    simulation = Simulation(np.array([500, 500]))
-    visual = Visualiser()
-    visual.create_scatters(1)
-    visual.set_axis()
-    # give simulation to visual
-    visual.simulation = simulation
-    visual.start()
+	input_array = np.array([500, 500, 500, 500])
+	simulation = Simulation(input_array)
+
+	visual = Visualiser()
+	visual.set_axis()
+	visual.set_simulation_instance(simulation)
+
+	visual.start()
+	# print(simulation.particle_type_index_array[:simulation.num_particles])
