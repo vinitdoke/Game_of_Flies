@@ -22,8 +22,16 @@ def integrate(
         acc_x: np.ndarray,
         acc_y: np.ndarray,
         acc_z: np.ndarray,
-        timestep: float = 0.1
+        timestep: float = None
 ) -> None:
+    if timestep is None:
+        timestep = np.sqrt(np.max(vel_x[:num_particles] * vel_x[:num_particles] + vel_y[:num_particles] * vel_y[:num_particles]))
+        
+        if timestep > 1e-15:
+            timestep = 0.2 / timestep
+        else:
+            timestep = 0.1
+    
     vel_x += acc_x * 0.5 * timestep
     vel_y += acc_y * 0.5 * timestep
 

@@ -168,14 +168,9 @@ def main():
     # Run the simulation
     for i in range(iterations):
         phys_start = time.perf_counter()
-        dt = np.sqrt(np.max(vel_x[:num_particles] * vel_x[:num_particles] + vel_y[:num_particles] * vel_y[:num_particles]))
         
-        if dt > 1e-15:
-            dt = 0.2 / dt
-        else:
-            dt = 0.1
         integrate(pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, limits, r_max, num_particles,
-                parameter_matrix, particle_type_index_array, acc_x, acc_y, acc_z, dt)
+                parameter_matrix, particle_type_index_array, acc_x, acc_y, acc_z)
         phys_end = time.perf_counter()
         phys_time = (phys_end - phys_start)
         if i % plot_freq == 0:
