@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import time
 
 from force_profiles import all_force_functions
 from integrator import integrate
@@ -39,7 +40,7 @@ def setup_plotter(n_types: int, limits=(100, 100), dark_mode=False,
     ax.tick_params(axis='both', which='both', length=0)
     # set aspect ratio
     ax.set_aspect('equal')
-
+    ax.set_title("Game of Flies")
     # DARK MODE
     if dark_mode:
         fig.patch.set_facecolor('black')
@@ -52,6 +53,7 @@ def setup_plotter(n_types: int, limits=(100, 100), dark_mode=False,
         # ax.tick_params(axis='y', colors='white')
         ax.yaxis.label.set_color('white')
         ax.xaxis.label.set_color('white')
+        ax.title.set_color('white')
 
     scatters = []
     for i in range(n_types):
@@ -59,16 +61,21 @@ def setup_plotter(n_types: int, limits=(100, 100), dark_mode=False,
     if extra:
         scatters.append(ax.scatter([], [], s=2, c='grey'))
     plt.show()
-    return fig, scatters
+    return fig, scatters, ax
 
 
 extra_pos_x = np.array([])
 extra_pos_y = np.array([])
 
 
-def update_plot(fig, scatters, pos_x, pos_y, pos_z, max_particles, n_type,
-                limits):
+def update_plot(fig, scatters, ax,pos_x, pos_y, pos_z, max_particles, n_type,
+                limits, timing=None):
     # scatter.clear()
+    if timing[0] != 0:
+        ax.set_title(f"FPS : {1e3/timing[1]:.1f} "
+                     f"Phy : {1e3/timing[0]:.1f}")
+        # ax.set_title(f"Phy: {timing[0]:.2f}ms {1e3/timing[0] :.1f} FPS "
+        #              f"Plot: {timing[1]:.2f}ms {1e3/timing[1]:.1f} FPS")
     for i in range(n_type):
         # ax.scatter(pos_x[i * max_particles: (i + 1) * max_particles],
         #            pos_y[i * max_particles: (i + 1) * max_particles])
@@ -128,7 +135,8 @@ def main(iterations=10000):
     integrate(mof, dummy, dummy, dummy, dummy, dummy, dummy, (100, 100),
               10, np_dummy, 5, dummy, dummy, dummy, 1)  # dumb run
 
-    n_type_arr = np.array([3000, 3000])
+
+    n_type_arr = np.array([1000, 100])
 
     pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, interact_matrix, max_particles = \
         initialise(n_type_arr)
@@ -142,13 +150,16 @@ def main(iterations=10000):
     acc_z = np.zeros_like(vel_x)
 
     # run simulation
-    fig, scatters = setup_plotter(n_type, dark_mode=True, extra=not True)
+    fig, scatters, ax = setup_plotter(n_type, dark_mode=True, extra=not True)
 
     print("Initialised")
+    phys_time = 0
+    frame_time = 0
 
     for i in range(iterations):
         # out = np.vstack([pos_x, pos_y]).T
         # output.append(out)
+        phys_start = time.time()
         dt = np.sqrt(np.max(vel_x * vel_x + vel_y * vel_y))
 
         if dt > 1e-15:
@@ -159,11 +170,14 @@ def main(iterations=10000):
         integrate(mof, pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, (100, 100),
                   np.max(sample_input[:, :, 1]), n_type_arr, max_particles,
                   acc_x, acc_y, acc_z, dt)
-        if i % 10 == 0:
+        phys_end = time.time()
+        if i % 1 == 0:
             # _plot_dist(pos_x, pos_y, pos_z, max_particles, 3)
-            update_plot(fig, scatters, pos_x, pos_y, None, max_particles,
-                        n_type, (100, 100))
-
+            update_plot(fig, scatters, ax, pos_x, pos_y, None, max_particles,
+                        n_type, (100, 100), timing = [phys_time, frame_time])
+        frame_end = time.time()
+        phys_time = abs(phys_end - phys_start) * 1000
+        frame_time = abs(frame_end - phys_start) * 1000
     plt.close()
 
 
