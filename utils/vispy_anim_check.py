@@ -29,7 +29,8 @@ def update(ev):
     global scatter
     global t
     t += 1.0
-    scatter.set_data(solver(t), edge_color=None, face_color=(1, 1, 1, .5), size=10)
+    scatter.set_data(solver(t), edge_color=None, face_color=(1, 1, 1, .5),
+                     size=50)
 
 timer = app.Timer()
 timer.connect(update)
