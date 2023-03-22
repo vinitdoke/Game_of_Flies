@@ -145,11 +145,11 @@ def main():
 
 
 
-    parameter_matrix[0, :, :] = 3
-    parameter_matrix[1, :, :] = 10
-    parameter_matrix[2, :, :] = -50
-    parameter_matrix[3, 0, 0], parameter_matrix[3, 1, 1], parameter_matrix[3, 2, 2] = 10, 10, 10
-    p = 10
+    parameter_matrix[0, :, :] = 8
+    parameter_matrix[1, :, :] = 24
+    parameter_matrix[2, :, :] = -1
+    parameter_matrix[3, 0, 0], parameter_matrix[3, 1, 1], parameter_matrix[3, 2, 2] = 1, 1, 1
+    p = 0.5
     parameter_matrix[3, 0, 1], parameter_matrix[3, 0, 2] = -p, p
     parameter_matrix[3, 1, 0], parameter_matrix[3, 1, 2] = p, -p
     parameter_matrix[3, 2, 0], parameter_matrix[3, 2, 1] = -p, p
