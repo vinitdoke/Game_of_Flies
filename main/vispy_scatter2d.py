@@ -33,7 +33,8 @@ axis = visuals.XYZAxis(parent=view.scene)
 
 def update(ev):
     global scatter, scatter2
-    scatter.set_data(dummy_output(), edge_color=None,
+    scatter.set_data(dummy_output(),
+                     edge_color=None,
                      face_color=(1, 0, 0, 1), size=10)
     scatter2.set_data(dummy_output(), edge_color=None,
 					  face_color=(0, 0, 1, 1), size=10)
