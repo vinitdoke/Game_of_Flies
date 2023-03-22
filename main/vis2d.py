@@ -7,12 +7,8 @@ from vispy.color import ColorArray
 import numpy as np
 
 
-def dummy_output():
-    # 2D output in 3D structure
-    out = np.random.uniform(0, 100, (10000, 3))
-    out[:, 2] = 0
-    return out
-
+# TODO set_limits() function in Visualiser class
+# TODO Embed Inside GUI
 
 class Visualiser:
     def __init__(self):
@@ -84,3 +80,10 @@ class Visualiser:
         self.timer.start(0)
         self.canvas.show()
         app.run()
+
+
+def dummy_output():
+    # 2D output in 3D structure
+    out = np.random.uniform(0, 100, (10000, 3))
+    out[:, 2] = 0
+    return out

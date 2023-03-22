@@ -47,4 +47,3 @@ class Simulation:
                   self.acc_x, self.acc_y, self.acc_z)
         self.output[:, 0] = self.pos_x[:self.num_particles]
         self.output[:, 1] = self.pos_y[:self.num_particles]
-    #    print("update_called")
