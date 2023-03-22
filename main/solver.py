@@ -130,19 +130,19 @@ def main():
     parameter_matrix = init["parameter_matrix"]
     r_max = init["max_rmax"]
 
-    
-
     parameter_matrix[0, :, :] *= 2
-    parameter_matrix[0, :, :] += 4
+    parameter_matrix[0, :, :] += 3
 
     parameter_matrix[1, :, :] *= 5
     parameter_matrix[1, :, :] += 5
 
-    parameter_matrix[2, :, :] *= 3
+    parameter_matrix[2, :, :] *= 2
     parameter_matrix[2, :, :] += 3
 
-    parameter_matrix[3, :, :] *= 5
-    parameter_matrix[3, :, :] += 10
+    parameter_matrix[3, :, :] *= 2
+    parameter_matrix[3, :, :] += 8
+
+    r_max = np.max(parameter_matrix[1,:,:])
 
     iterations = 10000
 
@@ -157,11 +157,11 @@ def main():
         dt = np.sqrt(np.max(vel_x * vel_x + vel_y * vel_y))
 
         if dt > 1e-15:
-            dt = 0.2 / dt
+            dt = 0.01 / dt
         else:
             dt = 0.1
         integrate(pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, limits, r_max, num_particles,
-                parameter_matrix, particle_type_index_array, acc_x, acc_y, acc_z, dt*2)
+                parameter_matrix, particle_type_index_array, acc_x, acc_y, acc_z, dt)
         phys_end = time.perf_counter()
         if i % 1 == 0:
             update_plot(fig, scatters, ax, pos_x, pos_y, None, num_particles,

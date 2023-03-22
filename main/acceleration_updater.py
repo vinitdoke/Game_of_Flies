@@ -61,7 +61,7 @@ def accelerator(
 
                     acc = general_force_function(parameter_matrix[-1, p1, p2],
                                                 np.array([distance]),
-                                                parameter_matrix[:-1, p1, p2])
+                                                parameter_matrix[:, p1, p2])
                     a_x = acc * (pos_x_1 - pos_x_2) / distance
                     a_y = acc * (pos_y_1 - pos_y_2) / distance
 

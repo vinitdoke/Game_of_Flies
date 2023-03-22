@@ -2,7 +2,7 @@ import numpy as np
 from numba import njit
 from acceleration_updater import accelerator
 
-fac = 0.92
+fac = 0.9
 
 
 @njit
