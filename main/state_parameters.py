@@ -3,7 +3,7 @@ from numpy import random
 
 
 def rand_param_matrix(
-        n_type: np.array,
+        n_type: np.ndarray,
         force_type: str = 'Clusters',
         max_param: int = 4,
         seed_num: int = 0
@@ -33,7 +33,7 @@ def rand_param_matrix(
 
 
 def initialise(
-        n_type: np.array,
+        n_type: np.ndarray,
         seed_int: int = 0,
         limits: tuple = (100, 100, 0)
 ):
@@ -42,10 +42,13 @@ def initialise(
     buffer = 0  # extra space for adding particles
     total_len = len(n_type)*max_particle + buffer
     total_given_part = sum(n_type)
+
+    total_len = total_given_part * 2
+
     dim = 3
 
-    if max(n_type) > max_particle:
-        raise Exception(f"Max allowed num of each particle is {max_particle}")
+    #if max(n_type) > max_particle:
+        #raise Exception(f"Max allowed num of each particle is {max_particle}")
 
     """
     Random initialization of positions,
@@ -57,12 +60,12 @@ def initialise(
 
     random.seed(seed_int)
     rand_data = random.rand(dim, total_len)
-    zero_arr = np.zeros(total_len)
+    #zero_arr = np.zeros(total_len)
 
     for i in range(dim):
-        pos[i][:total_given_part] = limits[i]*rand_data[i][:total_given_part]
-        vel[i][:total_given_part] = zero_arr[:total_given_part]
-        acc[i][:total_given_part] = zero_arr[:total_given_part]
+        pos[i, :total_given_part] = limits[i]*rand_data[i][:total_given_part]
+        vel[i, :total_given_part] = np.zeros(total_given_part)
+        acc[i, :total_given_part] = np.zeros(total_given_part)
 
     """
     Particle index array

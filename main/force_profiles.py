@@ -125,7 +125,7 @@ def all_force_functions(profile_name: str, *params):
 
 
 @numba.njit
-def general_force_function(profile_type, input_vect: list, *args):
+def general_force_function(profile_type: int, input_vect: np.ndarray, args: np.ndarray):
     """
     :param profile_type: int
     :   1 : clusters_distance_input
