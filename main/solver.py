@@ -9,7 +9,7 @@ from integrator import integrate
 # TODO : Benchmark Function
 # TODO : Profiling Function
 
-color_list = np.array(['red', 'blue', 'green', 'yellow', 'black', 'orange', 'purple'])
+color_list = np.array(['red', 'green', 'blue', 'orange', 'white', 'purple', 'yellow'])
 
 extra_pos_x = np.array([])
 extra_pos_y = np.array([])
@@ -112,7 +112,7 @@ def update_plot(fig, scatters, ax, pos_x, pos_y, pos_z, num_particles, limits, t
 
 def main():
     # Initialise the state parameters
-    n_type_arr = [1000, 100, 100]
+    n_type_arr = np.array([500, 500, 500])
 
     init = initialise(n_type_arr)
 
@@ -132,16 +132,28 @@ def main():
     r_max = init["max_rmax"]
 
     parameter_matrix[0, :, :] *= 3
-    parameter_matrix[0, :, :] += 3
+    parameter_matrix[0, :, :] += 5
 
     parameter_matrix[1, :, :] *= 5
-    parameter_matrix[1, :, :] += 6
+    parameter_matrix[1, :, :] += 8
 
     parameter_matrix[2, :, :] *= 3
     parameter_matrix[2, :, :] += 2
 
     parameter_matrix[3, :, :] *= 12
     parameter_matrix[3, :, :] -= 6
+
+
+
+    parameter_matrix[0, :, :] = 3
+    parameter_matrix[1, :, :] = 10
+    parameter_matrix[2, :, :] = -50
+    parameter_matrix[3, 0, 0], parameter_matrix[3, 1, 1], parameter_matrix[3, 2, 2] = 10, 10, 10
+    p = 10
+    parameter_matrix[3, 0, 1], parameter_matrix[3, 0, 2] = -p, p
+    parameter_matrix[3, 1, 0], parameter_matrix[3, 1, 2] = p, -p
+    parameter_matrix[3, 2, 0], parameter_matrix[3, 2, 1] = -p, p
+    
 
     r_max = np.max(parameter_matrix[1,:,:])
 
@@ -150,26 +162,29 @@ def main():
     # Initialise the plotter
     fig, scatters, ax = setup_plotter(particle_type_index_array, num_particles, extra=False)
     phys_time = 0
-    frame_time = 0
+    plot_time = 0
+    plot_freq = 5
 
     # Run the simulation
     for i in range(iterations):
-        start = time.perf_counter()
+        phys_start = time.perf_counter()
         dt = np.sqrt(np.max(vel_x[:num_particles] * vel_x[:num_particles] + vel_y[:num_particles] * vel_y[:num_particles]))
         
         if dt > 1e-15:
-            dt = 0.4 / dt
+            dt = 0.2 / dt
         else:
             dt = 0.1
         integrate(pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, limits, r_max, num_particles,
                 parameter_matrix, particle_type_index_array, acc_x, acc_y, acc_z, dt)
         phys_end = time.perf_counter()
-        if i % 5 == 0:
+        phys_time = (phys_end - phys_start)
+        if i % plot_freq == 0:
+            plot_start = time.perf_counter()
             update_plot(fig, scatters, ax, pos_x, pos_y, None, num_particles,
-                        limits, timing = [phys_time, frame_time - phys_time])
-        frame_end = time.perf_counter()
-        phys_time = (phys_end - start)
-        frame_time = (frame_end - start)
-
+                        limits, timing = [phys_time, plot_time])
+            plot_end = time.perf_counter()
+            plot_time = (plot_end - plot_start) / plot_freq
+        
+        
 if __name__ == '__main__':
     main()
