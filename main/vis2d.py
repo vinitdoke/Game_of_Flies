@@ -30,9 +30,10 @@ class Visualiser:
         self.axis = None
         self.timer = None
         self.colour_array = None
+        self.boundary = None
 
         self.COLOUR_LIST = ['red', 'blue', 'green', 'yellow', 'orange',
-                            'purple', 'pink', 'brown', 'black', 'white']
+                            'purple', 'pink', 'brown', 'white']
 
     def set_simulation_instance(self, obj):
         self.simulation = obj
@@ -66,6 +67,16 @@ class Visualiser:
 
     def get_data(self):
         raise NotImplementedError
+
+    def draw_boundary(self):
+        limits = self.simulation.limits
+        pts = np.array([[0, 0],
+                        [0, limits[1]],
+                        [limits[0], limits[1]],
+                        [limits[0], 0],
+                        [0, 0]])
+        self.boundary = visuals.Line(pos=pts, color=(1, 1, 1, 0.5), width=1,
+                                     parent=self.view.scene)
 
     def start(self):
         self.timer = app.Timer()
