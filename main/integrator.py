@@ -24,7 +24,7 @@ def integrate(
         acc_z: np.ndarray,
         timestep: float = 0.1
 ) -> None:
-    '''vel_x += acc_x * 0.5 * timestep
+    vel_x += acc_x * 0.5 * timestep
     vel_y += acc_y * 0.5 * timestep
 
     accelerator(pos_x, pos_y, pos_z, vel_x, vel_y, vel_z,
@@ -39,27 +39,7 @@ def integrate(
     vel_y += acc_y * 0.5 * timestep
 
     vel_x *= fac
-    vel_y *= fac'''
-    accelerator(pos_x, pos_y, pos_z, vel_x, vel_y, vel_z,
-                limits, r_max, num_particles,
-                parameter_matrix, particle_type_index_array,
-                acc_x, acc_y, acc_z)
-
-    pos_x += vel_x * 0.5 * timestep
-    pos_y += vel_y * 0.5 * timestep
-    # pos_z += vel_z * 0.5 * timestep
-
-    vel_x += acc_x * timestep
-    vel_y += acc_y * timestep
-    # vel_z += acc_z * timestep
-
-    vel_x *= fac
     vel_y *= fac
-    # vel_z *= fac
-
-    pos_x += vel_x * 0.5 * timestep
-    pos_y += vel_y * 0.5 * timestep
-    # pos_z += vel_z * 0.5 * timestep
 
     pos_x[pos_x < 0] += limits[0]
     pos_x[pos_x > limits[0]] -= limits[0]

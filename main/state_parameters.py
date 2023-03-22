@@ -6,7 +6,7 @@ def rand_param_matrix(
         n_type: np.ndarray,
         force_type: str = 'Clusters',
         max_param: int = 4,
-        seed_num: int = 0
+        seed: int = None
 ):
     n = len(n_type)
     n_sq = n*n
@@ -17,7 +17,8 @@ def rand_param_matrix(
         param_matrix[-1][:][:] = 0
 
     # r_min, r_max, f_min, f_max
-    random.seed(seed_num)
+    if seed is not None:
+        random.seed(seed)
     raw_data = random.rand(n*n*max_param)
     raw_data[:2*n_sq].sort()
     random.shuffle(raw_data[: n_sq])
@@ -34,10 +35,9 @@ def rand_param_matrix(
 
 def initialise(
         n_type: np.ndarray,
-        seed_int: int = 0,
+        seed: int = None,
         limits: tuple = (100, 100, 0)
 ):
-
     max_particle = 10  # max particle of a single kind
     buffer = 0  # extra space for adding particles
     total_len = len(n_type)*max_particle + buffer
@@ -58,7 +58,8 @@ def initialise(
     vel = np.ones((dim, total_len))*np.nan
     acc = np.ones((dim, total_len))*np.nan
 
-    random.seed(seed_int)
+    if seed is not None:
+        random.seed(seed)
     rand_data = random.rand(dim, total_len)
     #zero_arr = np.zeros(total_len)
 
@@ -77,7 +78,7 @@ def initialise(
         part_type_indx_arr[:trick_sum] = s
         s -= 1
 
-    param_matrix, max_rmax = rand_param_matrix(n_type)
+    param_matrix, max_rmax = rand_param_matrix(n_type, seed = seed)
     # Dictionary to store all the data
     state_variable_dict = {
         "pos_x": pos[0],

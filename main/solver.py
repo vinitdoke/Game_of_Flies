@@ -58,6 +58,7 @@ def setup_plotter(particle_type_index_array: np.ndarray, num_particles: int,
         # ax.tick_params(axis='y', colors='white')
         ax.yaxis.label.set_color('white')
         ax.xaxis.label.set_color('white')
+        ax.set_title("", fontdict={'color': 'white'})
 
     colors = []
     for i in range(num_particles):
@@ -73,8 +74,8 @@ def setup_plotter(particle_type_index_array: np.ndarray, num_particles: int,
 
 def update_plot(fig, scatters, ax, pos_x, pos_y, pos_z, num_particles, limits, timing=None):
     if timing[0] is not None or True:
-        ax.set_title(f"Phy: {timing[0]:.2f}ms"
-                     f"Plot: {timing[1]:.2f}ms")
+        ax.set_title(f"Phy: {timing[0]*1000:.2f}ms  "
+                     f"Plot: {timing[1]*1000:.2f}ms")
         # ax.set_title(f"Phy: {timing[0]:.2f}ms {1e3/timing[0] :.1f} FPS "
         #              f"Plot: {timing[1]:.2f}ms {1e3/timing[1]:.1f} FPS")
     scatters[0].set_offsets(np.vstack([pos_x[:num_particles], pos_y[:num_particles]]).T)
@@ -111,7 +112,7 @@ def update_plot(fig, scatters, ax, pos_x, pos_y, pos_z, num_particles, limits, t
 
 def main():
     # Initialise the state parameters
-    n_type_arr = [10000, 100, 100]
+    n_type_arr = [1000, 100, 100]
 
     init = initialise(n_type_arr)
 
@@ -139,8 +140,8 @@ def main():
     parameter_matrix[2, :, :] *= 3
     parameter_matrix[2, :, :] += 2
 
-    parameter_matrix[3, :, :] *= 20
-    parameter_matrix[3, :, :] -= 10
+    parameter_matrix[3, :, :] *= 12
+    parameter_matrix[3, :, :] -= 6
 
     r_max = np.max(parameter_matrix[1,:,:])
 
@@ -165,7 +166,7 @@ def main():
         phys_end = time.perf_counter()
         if i % 5 == 0:
             update_plot(fig, scatters, ax, pos_x, pos_y, None, num_particles,
-                        limits, timing = [phys_time, frame_time])
+                        limits, timing = [phys_time, frame_time - phys_time])
         frame_end = time.perf_counter()
         phys_time = (phys_end - start)
         frame_time = (frame_end - start)
