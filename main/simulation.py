@@ -4,8 +4,8 @@ import numpy as np
 
 
 class Simulation:
-    def __init__(self, n_type) -> None:
-        self.init = initialise(n_type)
+    def __init__(self, n_type, seed=None, limits=(100, 100, 0)) -> None:
+        self.init = initialise(n_type, seed=seed, limits=limits)  # seed 4, 10, 100, 50, 69, 35
 
         self.pos_x = self.init["pos_x"]
         self.pos_y = self.init["pos_y"]
@@ -34,6 +34,10 @@ class Simulation:
 
         self.parameter_matrix[3, :, :] *= 12
         self.parameter_matrix[3, :, :] -= 6
+
+        # Always attract self
+        for i in range(self.parameter_matrix[0,:,0].size):
+            self.parameter_matrix[3, i, i] = abs(self.parameter_matrix[3, i, i]) 
 
         self.r_max = np.max(self.parameter_matrix[1, :, :])
 
