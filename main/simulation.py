@@ -30,7 +30,7 @@ class Simulation:
         self.parameter_matrix[1, :, :] += 8
 
         self.parameter_matrix[2, :, :] *= 3
-        self.parameter_matrix[2, :, :] += 2
+        self.parameter_matrix[2, :, :] -= 10
 
         self.parameter_matrix[3, :, :] *= 12
         self.parameter_matrix[3, :, :] -= 6
