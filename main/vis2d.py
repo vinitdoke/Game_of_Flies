@@ -59,7 +59,7 @@ class Visualiser:
         self.scatters[0].set_data(self.simulation.output,
                                   edge_color=None,
                                   face_color=self.colour_array,
-                                  size=10)
+                                  size=6)
 
     def get_data(self):
         raise NotImplementedError

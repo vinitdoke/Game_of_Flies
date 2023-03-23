@@ -35,6 +35,10 @@ class Simulation:
         self.parameter_matrix[3, :, :] *= 12
         self.parameter_matrix[3, :, :] -= 6
 
+        # Always attract self
+        for i in range(self.parameter_matrix[0,:,0].size):
+            self.parameter_matrix[3, i, i] = abs(self.parameter_matrix[3, i, i]) 
+
         self.r_max = np.max(self.parameter_matrix[1, :, :])
 
         self.output = np.zeros((self.num_particles, 3))
