@@ -4,6 +4,8 @@ import numpy as np
 from numba import njit, prange
 import time
 
+
+
 @njit(parallel = True)
 def accelerator(
         pos_x: np.ndarray,
@@ -28,6 +30,8 @@ def accelerator(
     acc_z *= 0
 
     for i in prange(num_particles):
+        #if particle_type_index_array[i] == 0:
+            #continue
         pos_x_1 = pos_x[i]
         pos_y_1 = pos_y[i]
         pos_z_1 = pos_z[i]

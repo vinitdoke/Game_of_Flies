@@ -15,9 +15,9 @@ class Visualiser:
 
         self.canvas = vispy.scene.SceneCanvas(keys='interactive', show=True)
         self.view = self.canvas.central_widget.add_view()
-        # self.view.camera = PanZoomCamera(rect=(0, 0, 100, 100),
-        #                                  aspect=1,
-        #                                  )
+        self.view.camera = PanZoomCamera(rect=(0, 0, 100, 100),
+                                         aspect=1,
+                                         )
         self.view.camera = TurntableCamera()
         self.scatters = []
 
@@ -51,7 +51,10 @@ class Visualiser:
                      :self.simulation.num_particles]
         colour_array = []
         for index in index_list:
-            colour_array.append(self.COLOUR_LIST[index])
+            if index in [0, 2, 8]:
+                colour_array.append(self.COLOUR_LIST[index])
+            else:
+                colour_array.append((1,1,1,0))
         self.colour_array = ColorArray(colour_array)
 
     def update(self, _):
