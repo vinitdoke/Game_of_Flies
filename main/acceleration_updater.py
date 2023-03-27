@@ -25,12 +25,12 @@ def accelerator(
 ) -> None:
     acc_x *= 0
     acc_y *= 0
-    #acc_z *= 0
+    acc_z *= 0
 
     for i in prange(num_particles):
         pos_x_1 = pos_x[i]
         pos_y_1 = pos_y[i]
-        #pos_z_1 = pos_z[i]
+        pos_z_1 = pos_z[i]
 
         p1 = particle_type_index_array[i]
 
@@ -38,7 +38,7 @@ def accelerator(
             if i != j:
                 pos_x_2 = pos_x[j]
                 pos_y_2 = pos_y[j]
-                #pos_z_2 = pos_z[j]
+                pos_z_2 = pos_z[j]
 
                 # Implements periodic BC
                 # assumes r_max < min(limits) / 3
@@ -50,9 +50,14 @@ def accelerator(
                     pos_y_2 -= limits[1]
                 elif pos_y_2 < r_max and pos_y_1 > limits[1] - r_max:
                     pos_y_2 += limits[1]
+                if pos_z_1 < r_max and pos_z_2 > limits[2] - r_max:
+                    pos_z_2 -= limits[2]
+                elif pos_z_2 < r_max and pos_z_1 > limits[2] - r_max:
+                    pos_z_2 += limits[2]
                 
                 distance = (pos_x_1 - pos_x_2) * (pos_x_1 - pos_x_2) + \
-                (pos_y_1 - pos_y_2) * (pos_y_1 - pos_y_2)
+                (pos_y_1 - pos_y_2) * (pos_y_1 - pos_y_2) + \
+                (pos_z_1 - pos_z_2) * (pos_z_1 - pos_z_2)
 
                 if r_min_sq < distance < r_max * r_max:  # 1e-10 is r_min**2
                     distance = np.sqrt(distance)
@@ -64,12 +69,14 @@ def accelerator(
                                                 parameter_matrix[:, p1, p2])
                     a_x = acc * (pos_x_1 - pos_x_2) / distance
                     a_y = acc * (pos_y_1 - pos_y_2) / distance
+                    a_z = acc * (pos_z_1 - pos_z_2) / distance
 
                     acc_x[i] -= a_x
                     acc_y[i] -= a_y
+                    acc_z[i] -= a_z
 
 if __name__ == "__main__":
-    init = initialise(np.array([10000, 1000, 1000]))
+    init = initialise(np.array([1000, 1000, 1000]))
 
     pos_x = init["pos_x"]
     pos_y = init["pos_y"]

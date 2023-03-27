@@ -2,7 +2,7 @@ import vispy
 import vispy.scene
 from vispy.scene import visuals
 from vispy import app
-from vispy.scene.cameras import PanZoomCamera
+from vispy.scene.cameras import PanZoomCamera, TurntableCamera
 from vispy.color import ColorArray
 import numpy as np
 
@@ -15,9 +15,10 @@ class Visualiser:
 
         self.canvas = vispy.scene.SceneCanvas(keys='interactive', show=True)
         self.view = self.canvas.central_widget.add_view()
-        self.view.camera = PanZoomCamera(rect=(0, 0, 100, 100),
-                                         aspect=1,
-                                         )
+        # self.view.camera = PanZoomCamera(rect=(0, 0, 100, 100),
+        #                                  aspect=1,
+        #                                  )
+        self.view.camera = TurntableCamera()
         self.scatters = []
 
         self.plotting_initialised = False
@@ -59,7 +60,7 @@ class Visualiser:
         self.scatters[0].set_data(self.simulation.output,
                                   edge_color=None,
                                   face_color=self.colour_array,
-                                  size=6)
+                                  size=10)
 
     def get_data(self):
         raise NotImplementedError

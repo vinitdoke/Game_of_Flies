@@ -28,7 +28,8 @@ def integrate(
     if timestep is None:
         timestep = 0
         for i in prange(num_particles):
-            tmp = vel_x[i] * vel_x[i] + vel_y[i] * vel_y[i]
+            tmp = vel_x[i] * vel_x[i] + vel_y[i] * vel_y[i] + \
+                vel_z[i] * vel_z[i]
             if tmp > timestep:
                 timestep = tmp
         timestep = np.sqrt(timestep)
@@ -42,6 +43,7 @@ def integrate(
     for i in prange(num_particles):
         vel_x[i] += acc_x[i] * 0.5 * timestep
         vel_y[i] += acc_y[i] * 0.5 * timestep
+        vel_z[i] += acc_z[i] * 0.5 * timestep
 
     accelerator(pos_x, pos_y, pos_z, vel_x, vel_y, vel_z,
                 limits, r_max, num_particles,
@@ -51,12 +53,15 @@ def integrate(
     for i in prange(num_particles):
         pos_x[i] += (vel_x[i] + 0.5 * acc_x[i] * timestep) * timestep
         pos_y[i] += (vel_y[i] + 0.5 * acc_y[i] * timestep) * timestep
+        pos_z[i] += (vel_z[i] + 0.5 * acc_z[i] * timestep) * timestep
 
         vel_x[i] += acc_x[i] * 0.5 * timestep
         vel_y[i] += acc_y[i] * 0.5 * timestep
+        vel_z[i] += acc_z[i] * 0.5 * timestep
 
         vel_x[i] *= fac
         vel_y[i] *= fac
+        vel_z[i] *= fac
 
         if pos_x[i] < 0:
             pos_x[i] += limits[0]
@@ -66,3 +71,7 @@ def integrate(
             pos_y[i] += limits[1]
         elif pos_y[i] > limits[1]:
             pos_y[i] -= limits[1]
+        if pos_z[i] < 0:
+            pos_z[i] += limits[2]
+        elif pos_z[i] > limits[2]:
+            pos_z[i] -= limits[2]

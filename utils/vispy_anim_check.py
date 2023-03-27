@@ -11,6 +11,7 @@ view.camera = 'turntable'
 def solver(t):
     # pos = np.array([[0.5 + t/10000, 0.5, 0], [0, 0, 0.5], [0, 0.5, 0], [0.5, 0, 0]])
     pos = np.random.uniform(0,100, (100,3))
+    pos[:,2] = 0.0
     return pos
 # These are the data that need to be updated each frame --^
 
