@@ -6,8 +6,6 @@ from vispy.scene.cameras import PanZoomCamera, TurntableCamera
 from vispy.color import ColorArray
 import numpy as np
 
-
-# TODO set_limits() function in Visualiser class
 # TODO Embed Inside GUI
 
 class Visualiser:
@@ -15,10 +13,10 @@ class Visualiser:
 
         self.canvas = vispy.scene.SceneCanvas(keys='interactive', show=True)
         self.view = self.canvas.central_widget.add_view()
-        self.view.camera = PanZoomCamera(rect=(0, 0, 100, 100),
-                                         aspect=1,
-                                         )
-        self.view.camera = TurntableCamera()
+        # self.view.camera = PanZoomCamera(rect=(0, 0, 100, 100),
+        #                                  aspect=1,
+        #                                  )
+        # self.view.camera = TurntableCamera()
         self.scatters = []
 
         self.plotting_initialised = False
@@ -31,9 +29,19 @@ class Visualiser:
 
         self.COLOUR_LIST = ['red', 'blue', 'green', 'yellow', 'orange',
                             'purple', 'pink', 'brown', 'white']
+    
+    def create_Camera(self):
+        limits = self.simulation.limits
+        if limits[2] == 0:
+            self.view.camera = PanZoomCamera(rect=(0, 0, limits[0], limits[1]),
+                                             aspect=1,
+                                             )
+        else:
+            self.view.camera = TurntableCamera()
 
     def set_simulation_instance(self, obj):
         self.simulation = obj
+        self.create_Camera()
         self.create_scatters(1)
         self.generate_colour_array()
         self.plotting_initialised = True
@@ -51,10 +59,11 @@ class Visualiser:
                      :self.simulation.num_particles]
         colour_array = []
         for index in index_list:
-            if index in [0, 2, 8]:
-                colour_array.append(self.COLOUR_LIST[index])
-            else:
-                colour_array.append((1,1,1,0))
+            colour_array.append(self.COLOUR_LIST[index])
+            # if index in [0, 2, 8]:
+            #     colour_array.append(self.COLOUR_LIST[index])
+            # else:
+            #     colour_array.append((1,1,1,0))
         self.colour_array = ColorArray(colour_array)
 
     def update(self, _):
@@ -70,13 +79,43 @@ class Visualiser:
 
     def draw_boundary(self):
         limits = self.simulation.limits
-        pts = np.array([[0, 0],
-                        [0, limits[1]],
-                        [limits[0], limits[1]],
-                        [limits[0], 0],
-                        [0, 0]])
-        self.boundary = visuals.Line(pos=pts, color=(1, 1, 1, 0.5), width=1,
-                                     parent=self.view.scene)
+
+        if limits[2] == 0:
+            # pts = np.array([[0, 0],
+            #                 [0, limits[1]],
+            #                 [limits[0], limits[1]],
+            #                 [limits[0], 0],
+            #                 [0, 0]])
+            # self.boundary = visuals.Line(pos=pts, color=(1, 1, 1, 0.5), width=1,
+            #                             parent=self.view.scene)
+            self.boundary = visuals.Rectangle(center=(limits[0]/2, limits[1]/2,0),
+                                              width=limits[0],
+                                              height=limits[1],
+                                              border_color=(1, 1, 1, 0.5),
+                                              color=(1, 1, 1, 0),
+                                              parent=self.view.scene)
+        else:
+            # INELEGANT :(  (but it works)
+            pts = np.array([[0, 0, 0],
+                            [0, limits[1], 0],
+                            [limits[0], limits[1], 0],
+                            [limits[0], 0, 0],
+                            [0, 0, 0],
+                            [0, 0, limits[2]],
+                            [0, limits[1], limits[2]],
+                            [0, limits[1], 0],
+                            [0, limits[1], limits[2]],
+                            [limits[0], limits[1], limits[2]],
+                            [limits[0], limits[1], 0],
+                            [limits[0], limits[1], limits[2]],
+                            [limits[0], 0, limits[2]],
+                            [limits[0], 0, 0],
+                            [limits[0], 0, limits[2]],
+                            [0, 0, limits[2]],
+                            [0, 0, 0]])
+            self.boundary = visuals.Line(pos=pts, color=(1, 1, 1, 0.5), width=1,
+                                         parent=self.view.scene)
+            
 
     def start(self):
         self.timer = app.Timer()

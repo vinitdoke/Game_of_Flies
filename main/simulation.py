@@ -52,3 +52,11 @@ class Simulation:
         self.output[:, 0] = self.pos_x[:self.num_particles]
         self.output[:, 1] = self.pos_y[:self.num_particles]
         self.output[:, 2] = self.pos_z[:self.num_particles]
+
+    def blind_run(self, n_steps):
+        for _ in range(n_steps):
+            integrate(self.pos_x, self.pos_y, self.pos_z, self.vel_x, self.vel_y,
+                  self.vel_z,
+                  self.limits, self.r_max, self.num_particles,
+                  self.parameter_matrix, self.particle_type_index_array,
+                  self.acc_x, self.acc_y, self.acc_z)
