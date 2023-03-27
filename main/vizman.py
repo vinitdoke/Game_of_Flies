@@ -13,22 +13,29 @@ class Visualiser:
 
         self.canvas = vispy.scene.SceneCanvas(keys='interactive', show=True)
         self.view = self.canvas.central_widget.add_view()
-        # self.view.camera = PanZoomCamera(rect=(0, 0, 100, 100),
-        #                                  aspect=1,
-        #                                  )
-        # self.view.camera = TurntableCamera()
         self.scatters = []
 
         self.plotting_initialised = False
 
         self.simulation = None
         self.axis = None
-        self.timer = None
+
+        self.timer = app.Timer()
+        self.timer.connect(self.update)
+
+        self.print_fps = False # DEFAULT
+        self.canvas.measure_fps(window=1, callback=self.blah)
+
         self.colour_array = None
         self.boundary = None
 
         self.COLOUR_LIST = ['red', 'blue', 'green', 'yellow', 'orange',
                             'purple', 'pink', 'brown', 'white']
+        
+    def blah(self, FPS):
+        # print(x)
+        if self.print_fps:
+            print(f'FPS: {FPS:.2f}')
     
     def create_Camera(self):
         limits = self.simulation.limits
@@ -116,11 +123,10 @@ class Visualiser:
             
 
     def start(self):
-        self.timer = app.Timer()
-        self.timer.connect(self.update)
         self.timer.start(0)
         self.canvas.show()
-        app.run()
+        # self.canvas.measure_fps()
+        # app.run()
 
 
 def dummy_output():
