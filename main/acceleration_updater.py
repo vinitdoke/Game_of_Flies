@@ -1,10 +1,10 @@
 from force_profiles import general_force_function
 from state_parameters import initialise
 import numpy as np
-from numba import njit
+from numba import njit, prange
 import time
 
-@njit
+@njit(parallel = True)
 def accelerator(
         pos_x: np.ndarray,
         pos_y: np.ndarray,
@@ -27,14 +27,14 @@ def accelerator(
     acc_y *= 0
     #acc_z *= 0
 
-    for i in range(num_particles):
+    for i in prange(num_particles):
         pos_x_1 = pos_x[i]
         pos_y_1 = pos_y[i]
         #pos_z_1 = pos_z[i]
 
         p1 = particle_type_index_array[i]
 
-        for j in range(num_particles):
+        for j in prange(num_particles):
             if i != j:
                 pos_x_2 = pos_x[j]
                 pos_y_2 = pos_y[j]
