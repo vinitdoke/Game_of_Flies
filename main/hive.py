@@ -7,6 +7,7 @@ from ui_container import MainWindow
 from vizman import Visualiser
 
 
+
 def parse():
     parser = ArgumentParser()
     parser.add_argument('-b', '--blind', action='store_true', default=False,
@@ -20,7 +21,7 @@ def parse():
 if __name__ == "__main__":
 
     args = parse()
-    input_array = np.array([100] * 9)  # max 9 types due to color_list
+    input_array = np.array([1000] * 9)  # max 9 types due to color_list
     simulation = Simulation(input_array, seed=1234, limits=(100, 100, 100))
     simulation.update()  # dummy call to avoid frame freeze on first update
     # seed 4, 10, 100, 50, 69, 35, 434, 954, 1039

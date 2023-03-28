@@ -1,6 +1,8 @@
 from state_parameters import initialise
 from integrator import integrate
 import numpy as np
+import time
+from tqdm import tqdm
 
 
 class Simulation:
@@ -54,9 +56,23 @@ class Simulation:
         self.output[:, 2] = self.pos_z[:self.num_particles]
 
     def blind_run(self, n_steps):
-        for _ in range(n_steps):
+        # total_time = 0
+        # i = 1
+        # frame_rate_window = 5
+        for _ in tqdm(range(n_steps)):
+            # time_start = time.time()
             integrate(self.pos_x, self.pos_y, self.pos_z, self.vel_x, self.vel_y,
                   self.vel_z,
                   self.limits, self.r_max, self.num_particles,
                   self.parameter_matrix, self.particle_type_index_array,
                   self.acc_x, self.acc_y, self.acc_z)
+            # time_stop = time.time()
+            # if i%frame_rate_window == 0:
+            #     print(i)
+            #     total_time += time_stop-time_start
+            #     print("FPS: ", 1/(total_time/10))
+            #     total_time = 0
+            #     i = 1
+            # else:
+            #     total_time += time_stop-time_start
+            #     i += 1
