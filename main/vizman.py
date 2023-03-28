@@ -6,7 +6,6 @@ from vispy.scene.cameras import PanZoomCamera, TurntableCamera
 from vispy.color import ColorArray
 import numpy as np
 
-# TODO Embed Inside GUI
 
 class Visualiser:
     def __init__(self):
