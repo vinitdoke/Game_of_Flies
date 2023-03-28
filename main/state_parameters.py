@@ -1,98 +1,114 @@
-# def initialise(
-#         input_list: list,
-#
-# ):
-#     """
-#     Outputs:
-#     1. Positions (pos_x, pos_y, pos_z)
-#     2. Velocities (vel_x, vel_y, vel_z)
-#     3. Type-Indices
-#     4. Parameter_matrix (n_type*n_type*3 (r_max, r_min, f_max) array)
-#        r_min < r_max
-#        r_min != 0
-#        0 < f_max <= 1
-#        -1 <= f_min < 0
-#     """
-#     pass
-
-# TODO max_particles -- max_particles_per_type
-# TODO initialise -- random_init, params -- random generated
-# TODO fix inter shape and name
-# TODO change all names to full
-# TODO return dictionary of all data
-# TODO range defualt
-# TODO all arrays as ndarray
-
-
 import numpy as np
 from numpy import random
-import matplotlib.pyplot as plt
 
 
-def _plot_dist(pos_x, pos_y, pos_z,
-               max_particles, len_p_tynum):
-    for i in range(len_p_tynum):
-        plt.scatter(pos_x[i*max_particles: (i+1)*max_particles],
-                    pos_y[i*max_particles: (i+1)*max_particles], label = f"Particle {i}")
-    plt.title('Particle Distribution')
-    plt.legend()
-    plt.show()
+def rand_param_matrix(
+        n_type: np.ndarray,
+        force_type: str = 'Clusters',
+        max_param: int = 4,
+        seed: int = None
+):
+    n = len(n_type)
+    n_sq = n * n
+    param_matrix = np.zeros((max_param + 1, n, n))
+
+    # last matrix distinguishes the type of interaction
+    if force_type == 'Clusters':
+        param_matrix[-1][:][:] = 0
+
+    # r_min, r_max, f_min, f_max
+    if seed is not None:
+        random.seed(seed)
+    raw_data = random.rand(n * n * max_param)
+    raw_data[:2 * n_sq].sort()
+    random.shuffle(raw_data[: n_sq])
+    random.shuffle(raw_data[n_sq: 2 * n_sq])
+
+    for i in range(len(param_matrix) - 1):
+        param_matrix[i][:][:] = raw_data[i * n_sq: i * n_sq + n_sq].reshape(
+            (n, n))
+
+    param_matrix[2][:][:] = -param_matrix[2][:][:]
+    r_rmax = np.max(param_matrix[3][:][:])
+
+    return param_matrix, r_rmax
 
 
+<<<<<<< HEAD
 def initialise(n_type, *params): #p_tnum -- n_type
     max_particles = 10  # max particle of a single kind
     n_params = len(params)
     len_p_tynum = len(n_type)
     dist_params = int(n_params/(len_p_tynum*len_p_tynum))
+=======
+def initialise(
+        n_type: np.ndarray,
+        seed: int = None,
+        limits: tuple = (100, 100, 0)
+):
+    max_particle = 10  # max particle of a single kind
+    buffer = 0  # extra space for adding particles
+    total_len = len(n_type) * max_particle + buffer
+    total_given_part = sum(n_type)
+>>>>>>> object_oriented
 
-    pos_x = np.empty(len_p_tynum*max_particles)*np.NAN
-    pos_y = np.empty(len_p_tynum*max_particles)*np.NAN
-    pos_z = np.empty(len_p_tynum*max_particles)*np.NAN
+    total_len = total_given_part * 2
 
-    vel_x = np.empty(len_p_tynum*max_particles)*np.NAN
-    vel_y = np.empty(len_p_tynum*max_particles)*np.NAN
-    vel_z = np.empty(len_p_tynum*max_particles)*np.NAN
+    dim = 3
 
-    interact_matrix = np.zeros((dist_params, len_p_tynum, len_p_tynum))
+    # if max(n_type) > max_particle:
+    # raise Exception(f"Max allowed num of each particle is {max_particle}")
 
-    """Random Initialization of positions and velocities
-        num of single kind of particles <= max_particles
-        left spaces filled with NAN
     """
-    for i in range(len_p_tynum):
-        n_specp = int(n_type[i])
-        x = 100.0*random.rand(n_specp)
-        y = 100.0*random.rand(n_specp)
-        z = 100.0*random.rand(n_specp)
-        pos_x[i*max_particles: i*max_particles + n_specp] = x[:]
-        pos_y[i*max_particles: i*max_particles + n_specp] = y[:]
-        pos_z[i*max_particles: i*max_particles + n_specp] = z[:]
-        v_x = 2*random.rand(n_specp) - 1
-        v_y = 2*random.rand(n_specp) - 1
-        v_z = 2*random.rand(n_specp) - 1
-        vel_x[i*max_particles: i*max_particles + n_specp] = v_x
-        vel_y[i*max_particles: i*max_particles + n_specp] = v_y
-        vel_z[i*max_particles: i*max_particles + n_specp] = v_z
+    Random initialization of positions,
+    acceleration and velocities set to 0.
+    """
+    pos = np.ones((dim, total_len)) * np.nan
+    vel = np.ones((dim, total_len)) * np.nan
+    acc = np.ones((dim, total_len)) * np.nan
 
-    for k in range(dist_params):
-        for i in range(len_p_tynum):
-            for j in range(len_p_tynum):
-                interact_matrix[k, i, j] = params[
-                    len_p_tynum*len_p_tynum*k + len_p_tynum*i + j
-                    ]
+    if seed is not None:
+        random.seed(seed)
+    rand_data = random.rand(dim, total_len)
+    # zero_arr = np.zeros(total_len)
 
-    #_plot_dist(pos_x, pos_y, pos_z, max_particles, len_p_tynum)
+    for i in range(dim):
+        pos[i, :total_given_part] = limits[i] * rand_data[i][:total_given_part]
+        vel[i, :total_given_part] = np.zeros(total_given_part)
+        acc[i, :total_given_part] = np.zeros(total_given_part)
 
-    return pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, interact_matrix, max_particles
+    """
+    Particle index array
+    """
+    part_type_indx_arr = np.ones(total_len) * np.nan
+    s = len(n_type) - 1
+    for i in range(len(n_type)):
+        trick_sum = sum(n_type[:len(n_type) - i])
+        part_type_indx_arr[:trick_sum] = s
+        s -= 1
+
+    param_matrix, max_rmax = rand_param_matrix(n_type, seed=seed)
+    # Dictionary to store all the data
+    state_variable_dict = {
+        "pos_x": pos[0],
+        "pos_y": pos[1],
+        "pos_z": pos[2],
+        "vel_x": vel[0],
+        "vel_y": vel[1],
+        "vel_z": vel[2],
+        "acc_x": acc[0],
+        "acc_y": acc[1],
+        "acc_z": acc[2],
+        "limits": limits,
+        "n_type_array": n_type,
+        "particle_type_indx_array": part_type_indx_arr,
+        "max_particle_per_type": max_particle,
+        "parameter_matrix": param_matrix,
+        "max_rmax": max_rmax
+    }
+
+    return state_variable_dict
 
 
 if __name__ == '__main__':
-
-    p_x, p_y, p_z, v_x, v_y, v_z, inter = initialise([30, 40, 20],
-                                                     1, 2, 3,
-                                                     4, 5, 6,
-                                                     7, 8, 9,
-                                                     10, 11, 12,
-                                                     13, 14, 15,
-                                                     16, 17, 18)
-    print(inter.shape)
+    print(initialise([10, 6, 7]))
