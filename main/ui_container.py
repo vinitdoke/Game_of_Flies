@@ -80,7 +80,7 @@ class ControlsWidget(QtWidgets.QWidget):
 
 if __name__ == "__main__":
 
-    simulation = Simulation([100]*9, seed = 1234, limits=(100, 100, 100))
+    simulation = Simulation([100]*9, seed = 1234, limits=(100, 100, 0))
     simulation.update()  # dummy call to avoid frame freeze on first update
 
     visual = Visualiser()
