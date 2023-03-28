@@ -1,7 +1,4 @@
 utils/output/
 .idea
-<<<<<<< HEAD
 main/__pycache__
-=======
-main/__pycache__
->>>>>>> object_oriented
+

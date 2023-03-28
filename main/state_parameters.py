@@ -34,13 +34,6 @@ def rand_param_matrix(
     return param_matrix, r_rmax
 
 
-<<<<<<< HEAD
-def initialise(n_type, *params): #p_tnum -- n_type
-    max_particles = 10  # max particle of a single kind
-    n_params = len(params)
-    len_p_tynum = len(n_type)
-    dist_params = int(n_params/(len_p_tynum*len_p_tynum))
-=======
 def initialise(
         n_type: np.ndarray,
         seed: int = None,
@@ -50,7 +43,6 @@ def initialise(
     buffer = 0  # extra space for adding particles
     total_len = len(n_type) * max_particle + buffer
     total_given_part = sum(n_type)
->>>>>>> object_oriented
 
     total_len = total_given_part * 2
 
