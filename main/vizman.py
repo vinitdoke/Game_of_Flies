@@ -50,7 +50,6 @@ class Visualiser:
         ]
 
     def blah(self, FPS):
-        # print(x)
         if self.print_fps:
             print(f"FPS: {FPS:.2f}")
 
