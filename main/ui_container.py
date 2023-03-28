@@ -3,18 +3,18 @@ from vizman import Visualiser
 from simulation import Simulation
 from vispy.app import use_app
 
+
 # CANVAS_SIZE = (800, 600)
 
 class MainWindow(QtWidgets.QMainWindow):
 
     def __init__(self, visual):
-
         super().__init__()
         central_widget = QtWidgets.QWidget()
         main_layout = QtWidgets.QHBoxLayout()
 
-        self._canvas = visual 
-        self._controls = ControlsWidget(_canvas = self._canvas)
+        self._canvas = visual
+        self._controls = ControlsWidget(_canvas=self._canvas)
 
         main_layout.addWidget(self._controls, 1)
         main_layout.addWidget(self._canvas.canvas.native, 10)
@@ -29,7 +29,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 class ControlsWidget(QtWidgets.QWidget):
 
-    def __init__(self, parent = None, _canvas = None):
+    def __init__(self, parent=None, _canvas=None):
         super().__init__(parent)
 
         self._canvas = _canvas
@@ -54,16 +54,14 @@ class ControlsWidget(QtWidgets.QWidget):
 
         # Parameters:
 
-        ## STATS
+        # STATS
         # SEED
         # self._seed_label = QtWidgets.QLabel('Seed:')
         # self._seed_label.setAlignment(QtCore.Qt.AlignCenter)
         # self._seed_label.setStyleSheet('font-size: 20px; font-weight: bold')
         # layout.addWidget(self._seed_label)
 
-
         self.setLayout(layout)
-    
 
     def _start_stop(self):
         if self._start_stop_button.text() == 'Start':
@@ -79,8 +77,7 @@ class ControlsWidget(QtWidgets.QWidget):
 
 
 if __name__ == "__main__":
-
-    simulation = Simulation([100]*9, seed = 1234, limits=(100, 100, 0))
+    simulation = Simulation([100] * 9, seed=1234, limits=(100, 100, 0))
     simulation.update()  # dummy call to avoid frame freeze on first update
 
     visual = Visualiser()
