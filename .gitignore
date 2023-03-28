@@ -1,4 +1,7 @@
 utils/output/
 .idea
 main/__pycache__
-
+profile.html
+profile.json
+results_and_benchmarks/profile.html
+results_and_benchmarks/profile.json
