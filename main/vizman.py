@@ -6,6 +6,7 @@ from vispy.color import ColorArray
 from vispy.scene import visuals
 from vispy.scene.cameras import PanZoomCamera, TurntableCamera
 
+# TODO Rename scatters attribute to scene_objects
 
 class Visualiser:
     def __init__(self):
@@ -14,7 +15,6 @@ class Visualiser:
         self.view = self.canvas.central_widget.add_view()
         self.scatters = []
 
-        self.plotting_initialised = False
 
         self.simulation = None
         self.axis = None
@@ -22,8 +22,17 @@ class Visualiser:
         self.timer = app.Timer()
         self.timer.connect(self.update)
 
+
+        # BOOLS
+        self.plotting_initialised = False
+
+        # To print FPS, set to True
         self.print_fps = False  # DEFAULT
         self.canvas.measure_fps(window=1, callback=self.blah)
+
+        # Show Canvas
+        self.canvas_shown = False
+
 
         self.colour_array = None
         self.boundary = None
@@ -141,11 +150,12 @@ class Visualiser:
             )
 
     def start(self):
-        self.timer.start(0)
-        self.canvas.show()
-
-    # self.canvas.measure_fps()
-    # app.run()
+        if not self.canvas_shown:
+            self.timer.start(0)
+            self.canvas.show()
+            self.canvas_shown = True
+        else:
+            self.timer.start(0)
 
 
 def dummy_output():
