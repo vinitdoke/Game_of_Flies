@@ -58,6 +58,7 @@ def bin_particles(
         bin_offsets[i] = cuda.atomic.add(particle_bin_counts, particle_bins[i], 1)
 
 # Implementation of scan for a cumulative sum
+# Reference: https://www.eecs.umich.edu/courses/eecs570/hw/parprefix.pdf
 @cuda.jit
 def cumsum(values: np.ndarray, result: np.ndarray, d_max: int):
     i = cuda.grid(1)
