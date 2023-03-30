@@ -10,7 +10,7 @@ from vizman import Visualiser
 
 def parse():
     parser = ArgumentParser()
-    parser.add_argument('-b', '--blind', action='store_true', default=False,
+    parser.add_argument('-b', '--blind', action='store_true', default=not False,
                         help='Run simulation without visualisation')
     parser.add_argument('-i', '--ui', action='store_true', default=False,
                         help='Run simulation with UI')
@@ -48,4 +48,4 @@ if __name__ == "__main__":
             app.run()
 
     else:
-        simulation.blind_run(1000)
+        simulation.blind_run(200)

@@ -176,51 +176,51 @@ if __name__ == "__main__":
     ## TEST acceleration
     init = initialise(np.array([100,100,100]))
 
-    pos_x = init["pos_x"]
-    pos_y = init["pos_y"]
-    pos_z = init["pos_z"]
-    vel_x = init["vel_x"]
-    vel_y = init["vel_y"]
-    vel_z = init["vel_z"]
-    acc_x = init["acc_x"]
-    acc_y = init["acc_y"]
-    acc_z = init["acc_z"]
-    limits = np.array(init["limits"])
-    num_particles = np.sum(init["n_type_array"])
-    particle_type_index_array = np.array(init["particle_type_indx_array"], dtype="int32")
-    parameter_matrix = init["parameter_matrix"]
-    r_max = init["max_rmax"]
+    # pos_x = init["pos_x"]
+    # pos_y = init["pos_y"]
+    # pos_z = init["pos_z"]
+    # vel_x = init["vel_x"]
+    # vel_y = init["vel_y"]
+    # vel_z = init["vel_z"]
+    # acc_x = init["acc_x"]
+    # acc_y = init["acc_y"]
+    # acc_z = init["acc_z"]
+    # limits = np.array(init["limits"])
+    # num_particles = np.sum(init["n_type_array"])
+    # particle_type_index_array = np.array(init["particle_type_indx_array"], dtype="int32")
+    # parameter_matrix = init["parameter_matrix"]
+    # r_max = init["max_rmax"]
 
-    pos_x_global_mem = cuda.to_device(pos_x)
-    pos_y_global_mem = cuda.to_device(pos_y)
-    pos_z_global_mem = cuda.to_device(pos_z)
-    vel_x_global_mem = cuda.to_device(vel_x)
-    vel_y_global_mem = cuda.to_device(vel_y)
-    vel_z_global_mem = cuda.to_device(vel_z)
-    acc_x_global_mem = cuda.to_device(acc_x)
-    acc_y_global_mem = cuda.to_device(acc_y)
-    acc_z_global_mem = cuda.to_device(acc_z)
-    limits_global_mem = cuda.to_device(limits)
-    num_particles_global_mem = cuda.to_device(num_particles)
-    particle_type_index_array_global_mem = cuda.to_device(particle_type_index_array)
-    parameter_matrix_global_mem = cuda.to_device(parameter_matrix)
-    r_max_global_mem = cuda.to_device(r_max)
+    # pos_x_global_mem = cuda.to_device(pos_x)
+    # pos_y_global_mem = cuda.to_device(pos_y)
+    # pos_z_global_mem = cuda.to_device(pos_z)
+    # vel_x_global_mem = cuda.to_device(vel_x)
+    # vel_y_global_mem = cuda.to_device(vel_y)
+    # vel_z_global_mem = cuda.to_device(vel_z)
+    # acc_x_global_mem = cuda.to_device(acc_x)
+    # acc_y_global_mem = cuda.to_device(acc_y)
+    # acc_z_global_mem = cuda.to_device(acc_z)
+    # limits_global_mem = cuda.to_device(limits)
+    # num_particles_global_mem = cuda.to_device(num_particles)
+    # particle_type_index_array_global_mem = cuda.to_device(particle_type_index_array)
+    # parameter_matrix_global_mem = cuda.to_device(parameter_matrix)
+    # r_max_global_mem = cuda.to_device(r_max)
 
-    threadsperblock = 32
-    blockspergrid = (pos_x.shape[0] + (threadsperblock - 1)) // threadsperblock
+    # threadsperblock = 32
+    # blockspergrid = (pos_x.shape[0] + (threadsperblock - 1)) // threadsperblock
 
     # CUDA
-    start = time.time()
-    _cuda_accelerator[blockspergrid, threadsperblock](pos_x_global_mem, pos_y_global_mem, pos_z_global_mem, vel_x_global_mem, vel_y_global_mem, vel_z_global_mem,
-                                                      limits_global_mem, r_max_global_mem, num_particles_global_mem,
-                                                      parameter_matrix_global_mem, particle_type_index_array_global_mem,
-                                                      acc_x_global_mem, acc_y_global_mem, acc_z_global_mem, 1e-10)
-    end = time.time()
-    print("CUDA Time: ", end - start)
+    # start = time.time()
+    # _cuda_accelerator[blockspergrid, threadsperblock](pos_x_global_mem, pos_y_global_mem, pos_z_global_mem, vel_x_global_mem, vel_y_global_mem, vel_z_global_mem,
+    #                                                   limits_global_mem, r_max_global_mem, num_particles_global_mem,
+    #                                                   parameter_matrix_global_mem, particle_type_index_array_global_mem,
+    #                                                   acc_x_global_mem, acc_y_global_mem, acc_z_global_mem, 1e-10)
+    # end = time.time()
+    # print("CUDA Time: ", end - start)
 
-    # CPU
-    start = time.time()
-    accelerator(pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, limits, r_max, num_particles,
-                    parameter_matrix, particle_type_index_array, acc_x, acc_y, acc_z)
-    end = time.time()
-    print("CPU Time: ", end - start)
+    # # CPU
+    # start = time.time()
+    # accelerator(pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, limits, r_max, num_particles,
+    #                 parameter_matrix, particle_type_index_array, acc_x, acc_y, acc_z)
+    # end = time.time()
+    # print("CPU Time: ", end - start)
