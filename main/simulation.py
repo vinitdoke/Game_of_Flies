@@ -25,6 +25,7 @@ class Simulation:
         self.particle_type_index_array = np.array(self.init["particle_type_indx_array"], dtype="int32")
         self.parameter_matrix = self.init["parameter_matrix"]
         self.r_max = self.init["max_rmax"]
+        self.sq_speed = np.zeros_like(self.vel_x)
 
         self.parameter_matrix[0, :, :] *= 3
         self.parameter_matrix[0, :, :] += 5
@@ -33,7 +34,7 @@ class Simulation:
         self.parameter_matrix[1, :, :] += 8
 
         self.parameter_matrix[2, :, :] *= 3
-        self.parameter_matrix[2, :, :] -= 10
+        self.parameter_matrix[2, :, :] -= 30
 
         self.parameter_matrix[3, :, :] *= 12
         self.parameter_matrix[3, :, :] -= 6
@@ -45,7 +46,7 @@ class Simulation:
         self.r_max = np.max(self.parameter_matrix[1, :, :])
 
 
-        self.threads = 64
+        self.threads = 32
         self.blocks = int(np.ceil(self.num_particles/self.threads))
 
         self.num_bin_x = int(np.floor(self.limits[0] / self.r_max))
@@ -53,7 +54,7 @@ class Simulation:
         self.bin_size_x = self.limits[0] / self.num_bin_x
         self.bin_size_y = self.limits[0] / self.num_bin_y
 
-        self.bin_neighbours = np.zeros((self.num_bin_x * self.num_bin_y, 5), dtype=np.int32)
+        self.bin_neighbours = np.zeros((self.num_bin_x * self.num_bin_y, 9), dtype=np.int32)
         set_bin_neighbours(self.num_bin_x, self.num_bin_y, self.bin_neighbours)
         
 
@@ -76,6 +77,7 @@ class Simulation:
         self.d_vel_y = cuda.to_device(self.vel_y)
         self.d_acc_x = cuda.to_device(self.acc_x)
         self.d_acc_y = cuda.to_device(self.acc_y)
+        self.d_sq_speed = cuda.to_device(self.sq_speed)
         self.d_limits = cuda.to_device(self.limits)
         self.d_particle_tia = cuda.to_device(self.particle_type_index_array)
         self.d_parameter_matrix = cuda.to_device(self.parameter_matrix)
@@ -87,8 +89,6 @@ class Simulation:
         self.d_particle_indices = cuda.to_device(self.particle_indices)
         self.d_bin_neighbours = cuda.to_device(self.bin_neighbours)
 
-
-
         self.output = np.zeros((self.num_particles, 3))
 
     def update(self):
@@ -96,13 +96,12 @@ class Simulation:
                 self.d_particle_bins, self.d_particle_bin_counts, self.d_bin_offsets, self.d_particle_bin_starts, self.d_particle_indices,
                 self.blocks, self.threads
         )
-
         integrate(self.d_pos_x, self.d_pos_y, self.d_vel_x, self.d_vel_y,
                 self.d_limits, self.r_max, self.num_particles,
-                self.d_parameter_matrix, self.d_particle_tia, self.d_acc_x, self.d_acc_y,
+                self.d_parameter_matrix, self.d_particle_tia, self.d_acc_x, self.d_acc_y, self.d_sq_speed,
                 self.d_bin_neighbours, self.d_particle_bins, self.d_bin_offsets, self.d_particle_indices,
                 self.d_particle_bin_starts, self.d_particle_bin_counts,
-                self.blocks, self.threads, timestep = 0.01
+                self.blocks, self.threads
         )
         self.d_pos_x.copy_to_host(self.pos_x)
         self.d_pos_y.copy_to_host(self.pos_y)
@@ -118,17 +117,16 @@ class Simulation:
         for _ in tqdm(range(n_steps)):
             # time_start = time.time()
             setup_bins(self.d_pos_x, self.d_pos_y, self.num_bin_x, self.bin_size_x, self.bin_size_y, self.num_bins, self.num_particles,
-                self.d_particle_bins, self.d_particle_bin_counts, self.d_bin_offsets, self.d_particle_bin_starts, self.d_particle_indices,
-                self.blocks, self.threads
-        )
-
-        integrate(self.d_pos_x, self.d_pos_y, self.d_vel_x, self.d_vel_y,
-                self.d_limits, self.r_max, self.num_particles,
-                self.d_parameter_matrix, self.d_particle_tia, self.d_acc_x, self.d_acc_y,
-                self.d_bin_neighbours, self.d_particle_bins, self.d_bin_offsets, self.d_particle_indices,
-                self.d_particle_bin_starts, self.d_particle_bin_counts,
-                self.blocks, self.threads, timestep = 0.001
-        )
+                    self.d_particle_bins, self.d_particle_bin_counts, self.d_bin_offsets, self.d_particle_bin_starts, self.d_particle_indices,
+                    self.blocks, self.threads
+            )
+            integrate(self.d_pos_x, self.d_pos_y, self.d_vel_x, self.d_vel_y,
+                    self.d_limits, self.r_max, self.num_particles,
+                    self.d_parameter_matrix, self.d_particle_tia, self.d_acc_x, self.d_acc_y, self.d_sq_speed,
+                    self.d_bin_neighbours, self.d_particle_bins, self.d_bin_offsets, self.d_particle_indices,
+                    self.d_particle_bin_starts, self.d_particle_bin_counts,
+                    self.blocks, self.threads
+            )
             # time_stop = time.time()
             # if i%frame_rate_window == 0:
             #     print(i)

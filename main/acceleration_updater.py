@@ -108,7 +108,7 @@ def set_indices(
 
 
 # Called once duing initialization to store which bins are neighbours.
-# Stores only half the neighbours for double speed
+## Stores only half the neighbours for double speed
 @njit
 def set_bin_neighbours(num_bin_x: int, num_bin_y: int, bin_neighbours: np.ndarray):
     for i in range(num_bin_x):
@@ -125,16 +125,20 @@ def set_bin_neighbours(num_bin_x: int, num_bin_y: int, bin_neighbours: np.ndarra
                 jm1 = num_bin_y - 1
             elif j == num_bin_y - 1:
                 jp1 = 0
-            
-            #bin_neighbours[i + j * num_bin_x, 0] = im1 + jm1 * num_bin_x
-            #bin_neighbours[i + j * num_bin_x, 1] = i + jm1 * num_bin_x
-            #bin_neighbours[i + j * num_bin_x, 2] = ip1 + jm1 * num_bin_x
-            #bin_neighbours[i + j * num_bin_x, 3] = im1 + j * num_bin_x
-            bin_neighbours[i + j * num_bin_x, 0] = i + j * num_bin_x
+            '''bin_neighbours[i + j * num_bin_x, 0] = i + j * num_bin_x
             bin_neighbours[i + j * num_bin_x, 1] = ip1 + j * num_bin_x
             bin_neighbours[i + j * num_bin_x, 2] = im1 + jp1 * num_bin_x
             bin_neighbours[i + j * num_bin_x, 3] = i + jp1 * num_bin_x
-            bin_neighbours[i + j * num_bin_x, 4] = ip1 + jp1 * num_bin_x
+            bin_neighbours[i + j * num_bin_x, 4] = ip1 + jp1 * num_bin_x'''
+            bin_neighbours[i + j * num_bin_x, 0] = im1 + jm1 * num_bin_x
+            bin_neighbours[i + j * num_bin_x, 1] = i + jm1 * num_bin_x
+            bin_neighbours[i + j * num_bin_x, 2] = ip1 + jm1 * num_bin_x
+            bin_neighbours[i + j * num_bin_x, 3] = im1 + j * num_bin_x
+            bin_neighbours[i + j * num_bin_x, 4] = i + j * num_bin_x
+            bin_neighbours[i + j * num_bin_x, 5] = ip1 + j * num_bin_x
+            bin_neighbours[i + j * num_bin_x, 6] = im1 + jp1 * num_bin_x
+            bin_neighbours[i + j * num_bin_x, 7] = i + jp1 * num_bin_x
+            bin_neighbours[i + j * num_bin_x, 8] = ip1 + jp1 * num_bin_x
 
 # 2D implementation
 @cuda.jit
@@ -168,7 +172,7 @@ def accelerator(
     cuda.syncthreads()
 
     if i < num_particles:
-        for b in range(5):
+        for b in range(9):
             bin2 = bin_neighbours[particle_bins[i], b]
             for p in range(bin_counts[bin2]):
                 j = particle_indices[bin_starts[bin2] + p] # The second particle
@@ -194,20 +198,20 @@ def accelerator(
                             parameter_matrix[-1, particle_type_index_array[i], particle_type_index_array[j]],
                             dist, parameter_matrix[:, particle_type_index_array[i], particle_type_index_array[j]]
                         )
-                        acc2 = _cuda_general_force_function(
+                        '''acc2 = _cuda_general_force_function(
                             parameter_matrix[-1, particle_type_index_array[j], particle_type_index_array[i]],
                             dist, parameter_matrix[:, particle_type_index_array[j], particle_type_index_array[i]]
-                        )
+                        )'''
                         a_x1 = acc1 * (pos_x[i] - pos_x_2) / dist
                         a_y1 = acc1 * (pos_y[i] - pos_y_2) / dist
-                        a_x2 = acc2 * (pos_x[i] - pos_x_2) / dist
-                        a_y2 = acc2 * (pos_y[i] - pos_y_2) / dist
+                        #a_x2 = acc2 * (pos_x[i] - pos_x_2) / dist
+                        #a_y2 = acc2 * (pos_y[i] - pos_y_2) / dist
 
                         cuda.atomic.add(acc_x, i, -a_x1)
                         cuda.atomic.add(acc_y, i, -a_y1)
 
-                        cuda.atomic.add(acc_x, j, a_x2)
-                        cuda.atomic.add(acc_y, j, a_y2)
+                        #cuda.atomic.add(acc_x, j, a_x2)
+                        #cuda.atomic.add(acc_y, j, a_y2)
 
 
 if __name__ == "__main__":

@@ -61,6 +61,24 @@ def boundary_condition(
         elif pos_y[i] > limits[1]:
             pos_y[i] -= limits[1]
 
+@cuda.jit
+def set_sq_speed(
+    vel_x: np.ndarray,
+    vel_y: np.ndarray,
+    sq_speed: np.ndarray,
+    num_particles: np.int64
+):
+    i = cuda.grid(1)
+    if i < num_particles:
+        sq_speed[i] = vel_x[i] * vel_x[i] + vel_y[i] * vel_y[i]
+
+@cuda.reduce
+def max_reduce(a, b):
+    if a > b:
+        return a
+    else:
+        return b
+
 def integrate(
         pos_x: np.ndarray,
         pos_y: np.ndarray,
@@ -75,6 +93,8 @@ def integrate(
         acc_x: np.ndarray,
         acc_y: np.ndarray,
 
+        sq_speed: np.ndarray,
+
         bin_neighbours: np.ndarray,
         particle_bins: np.ndarray,
         bin_offsets: np.ndarray,
@@ -85,22 +105,16 @@ def integrate(
         blocks: int,
         threads: int,
 
-        timestep: np.float64 = 0.02
+        timestep: np.float64 = None
 ) -> None:
-    
-    '''if timestep is None:
-        timestep = 0
-        for i in prange(num_particles):
-            tmp = vel_x[i] * vel_x[i] + vel_y[i] * vel_y[i] + \
-                vel_z[i] * vel_z[i]
-            if tmp > timestep:
-                timestep = tmp
+    if timestep is None:
+        set_sq_speed[blocks, threads](vel_x, vel_y, sq_speed, num_particles)
+        timestep = max_reduce(sq_speed)
         timestep = np.sqrt(timestep)
-        
         if timestep > 1e-15:
-            timestep = 0.2 / timestep
+            timestep = 0.5 / timestep
         else:
-            timestep = 0.1'''
+            timestep = 0.01
     
     step1[blocks, threads](vel_x, vel_y, acc_x, acc_y, num_particles, timestep)
 

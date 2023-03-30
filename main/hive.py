@@ -20,8 +20,8 @@ def parse():
 if __name__ == "__main__":
 
     args = parse()
-    input_array = np.array([1000] * 9)  # max 9 types due to color_list
-    simulation = Simulation(input_array, seed=1234, limits=(100, 100, 0))
+    input_array = np.array([1000]*9)  # max 9 types due to color_list
+    simulation = Simulation(input_array, limits=(100, 100, 0), seed = None)
     simulation.update()  # dummy call to avoid frame freeze on first update
     # seed 4, 10, 100, 50, 69, 35, 434, 954, 1039
 
@@ -47,4 +47,4 @@ if __name__ == "__main__":
             app.run()
 
     else:
-        simulation.blind_run(10000)
+        simulation.blind_run(100)
