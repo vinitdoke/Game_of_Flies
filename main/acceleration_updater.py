@@ -5,7 +5,8 @@ from force_profiles import general_force_function
 from numba import cuda, njit, prange
 from state_parameters import initialise
 
-# 2D implementation
+# Assigns bins to particles and set their offset within it.
+# Also finds the number of particles in each bin
 @cuda.jit
 def bin_particles(
     pos_x: np.ndarray,
@@ -24,8 +25,9 @@ def bin_particles(
               + num_bin_x * (pos_y[i] // bin_size)
         bin_offsets[i] = cuda.atomic.add(particle_bin_counts, particle_bins[i], 1)
 
+# Implementation of scan for a cumulative sum
 @cuda.jit
-def cumsum(values: np.ndarray, result: np.ndarray, d_max: int, tmp: np.ndarray):
+def cumsum(values: np.ndarray, result: np.ndarray, d_max: int):
     i = cuda.grid(1)
     n = values.size
 
@@ -51,11 +53,12 @@ def cumsum(values: np.ndarray, result: np.ndarray, d_max: int, tmp: np.ndarray):
         dp1 = dp << 1
         j = i * dp1
         if (j + dp1 - 1) < n:
-            tmp[i] = result[j + dp - 1]
+            t = result[j + dp - 1]
             result[j + dp - 1] = result[j + dp1 - 1]
-            result[j + dp1 - 1] = tmp[i] + result[j + dp1 - 1]
+            result[j + dp1 - 1] = t + result[j + dp1 - 1]
         cuda.syncthreads()
 
+# Reorders the particles for usage
 @cuda.jit
 def set_indices(
     particle_bins: np.ndarray,
@@ -209,14 +212,13 @@ if __name__ == "__main__":
     particle_bin_countsd = cuda.to_device(particle_bin_counts)
     particle_bin_startsd = cuda.to_device(particle_bin_starts)
     particle_indicesd = cuda.to_device(particle_indices)
-    tmp = cuda.to_device(np.zeros(numbins))
 
 
 
     bin_particles[blocks, threads](pos_xd, pos_yd, num_bin_x, 2 * r_max, num_particles,
                                    particle_binsd, particle_bin_countsd, bin_offsetsd)
 
-    cumsum[blocks, threads](particle_bin_countsd, particle_bin_startsd, int(np.log2(numbins)), tmp)
+    cumsum[blocks, threads](particle_bin_countsd, particle_bin_startsd, int(np.log2(numbins)))
     
     set_indices[blocks, threads](particle_binsd, particle_bin_startsd, bin_offsetsd, particle_indicesd, num_particles)
 
