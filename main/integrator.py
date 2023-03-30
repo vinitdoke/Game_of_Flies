@@ -186,7 +186,7 @@ if __name__ == "__main__":
 
     particle_bin_starts = np.zeros_like(particle_bin_counts, dtype=np.int32)
     particle_bins = np.zeros_like(pos_x, dtype=np.int32)
-    particle_indices = np.zeros_like(pos_x, dtype=np.int32)
+    particle_indices = np.zeros_like(pos_x, dtype=np.int64)
     bin_offsets = np.zeros_like(pos_x, dtype=np.int32)
     
     d_pos_x = cuda.to_device(pos_x)
@@ -206,7 +206,7 @@ if __name__ == "__main__":
     d_particle_indices = cuda.to_device(particle_indices)
     d_bin_neighbours = cuda.to_device(bin_neighbours)
 
-    print(acc_x[:10])
+    print(pos_x[:10])
 
     reps = 0
     start = time.perf_counter()
@@ -224,13 +224,14 @@ if __name__ == "__main__":
         d_bin_offsets.copy_to_host(bin_offsets)
         d_particle_bin_counts.copy_to_host(particle_bin_counts)
         d_particle_bins.copy_to_host(particle_bins)
-        print(particle_bin_starts[:3])'''
+        print(particle_bin_starts[:])
+        print(particle_bin_counts[:])'''
 
         integrate(d_pos_x, d_pos_y, d_vel_x, d_vel_y,
                 d_limits, r_max, num_particles,
                 d_parameter_matrix, d_particle_tia, d_acc_x, d_acc_y,
                 d_bin_neighbours, d_particle_bins, d_bin_offsets, d_particle_indices, d_particle_bin_starts, d_particle_bin_counts,
-                blocks, threads, timestep = 0.5
+                blocks, threads, timestep = 0.1
         )
 
     start = time.perf_counter() - start
@@ -238,5 +239,4 @@ if __name__ == "__main__":
     print(f"Physics time: {1e3 * start / max(reps, 1)}")
 
     d_pos_x.copy_to_host(pos_x)
-    d_acc_x.copy_to_host(acc_x)
-    print(acc_x[:10])
+    print(pos_x[:10])

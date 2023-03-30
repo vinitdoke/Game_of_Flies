@@ -78,8 +78,9 @@ def cumsum(values: np.ndarray, result: np.ndarray, d_max: int):
     
     
     cuda.syncthreads()
-    result[n - 1] = 0
-    
+    if i == 0:
+        result[n - 1] = 0
+    cuda.syncthreads()
 
     for _ in range(d_max):
         d = d_max - _ - 1
@@ -191,11 +192,11 @@ def accelerator(
                         dist = dist ** 0.5
                         acc1 = _cuda_general_force_function(
                             parameter_matrix[-1, particle_type_index_array[i], particle_type_index_array[j]],
-                            dist, parameter_matrix[:-1, particle_type_index_array[i], particle_type_index_array[j]]
+                            dist, parameter_matrix[:, particle_type_index_array[i], particle_type_index_array[j]]
                         )
                         acc2 = _cuda_general_force_function(
                             parameter_matrix[-1, particle_type_index_array[j], particle_type_index_array[i]],
-                            dist, parameter_matrix[:-1, particle_type_index_array[j], particle_type_index_array[i]]
+                            dist, parameter_matrix[:, particle_type_index_array[j], particle_type_index_array[i]]
                         )
                         a_x1 = acc1 * (pos_x[i] - pos_x_2) / dist
                         a_y1 = acc1 * (pos_y[i] - pos_y_2) / dist
@@ -307,10 +308,10 @@ if __name__ == "__main__":
                                     acc_xd, acc_yd, bin_neighboursd, particle_binsd, bin_offsetsd,
                                     particle_indicesd, particle_bin_startsd, particle_bin_countsd)
         
-        acc_xd.copy_to_host(acc_x)
+        '''acc_xd.copy_to_host(acc_x)
         acc_yd.copy_to_host(acc_y)
         print(acc_x[:10])
-        print(acc_y[:10])
+        print(acc_y[:10])'''
 
     start = time.perf_counter() - start
 
