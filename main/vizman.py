@@ -98,7 +98,7 @@ class Visualiser:
 
     def update(self, _):
         self.simulation.update()
-        # print(self.simulation.output)
+        print(self.simulation.output)
         self.scatters[0].set_data(
             self.simulation.output,
             edge_color=None,
