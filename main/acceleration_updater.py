@@ -155,7 +155,8 @@ def accelerator(
         particle_bins: np.ndarray,
         bin_offsets: np.ndarray,
         particle_indices: np.ndarray,
-        bin_starts: np.ndarray
+        bin_starts: np.ndarray,
+        bin_counts: np.ndarray
 ) -> None:
     i = cuda.grid(1) # The first particle
 
@@ -168,7 +169,7 @@ def accelerator(
     if i < num_particles:
         for b in range(5):
             bin2 = bin_neighbours[particle_bins[i], b]
-            for p in range(bin_offsets[bin2]):
+            for p in range(bin_counts[bin2]):
                 j = particle_indices[bin_starts[bin2] + p] # The second particle
                 if i != j:
                     pos_x_2 = pos_x[j]
@@ -188,18 +189,24 @@ def accelerator(
                     dist = (pos_x[i] - pos_x_2) * (pos_x[i] - pos_x_2) + (pos_y[i] - pos_y_2) * (pos_y[i] - pos_y_2)
                     if 1e-10 < dist < r_max * r_max:
                         dist = dist ** 0.5
-                        acc = _cuda_general_force_function(
+                        acc1 = _cuda_general_force_function(
                             parameter_matrix[-1, particle_type_index_array[i], particle_type_index_array[j]],
                             dist, parameter_matrix[:-1, particle_type_index_array[i], particle_type_index_array[j]]
                         )
-                        a_x = acc * (pos_x[i] - pos_x_2) / dist
-                        a_y = acc * (pos_y[i] - pos_y_2) / dist
+                        acc2 = _cuda_general_force_function(
+                            parameter_matrix[-1, particle_type_index_array[j], particle_type_index_array[i]],
+                            dist, parameter_matrix[:-1, particle_type_index_array[j], particle_type_index_array[i]]
+                        )
+                        a_x1 = acc1 * (pos_x[i] - pos_x_2) / dist
+                        a_y1 = acc1 * (pos_y[i] - pos_y_2) / dist
+                        a_x2 = acc2 * (pos_x[i] - pos_x_2) / dist
+                        a_y2 = acc2 * (pos_y[i] - pos_y_2) / dist
 
-                        cuda.atomic.add(acc_x, i, -a_x)
-                        cuda.atomic.add(acc_y, i, -a_y)
+                        cuda.atomic.add(acc_x, i, -a_x1)
+                        cuda.atomic.add(acc_y, i, -a_y1)
 
-                        cuda.atomic.add(acc_x, j, a_x)
-                        cuda.atomic.add(acc_y, j, a_y)
+                        cuda.atomic.add(acc_x, j, a_x2)
+                        cuda.atomic.add(acc_y, j, a_y2)
 
 
 if __name__ == "__main__":
@@ -291,13 +298,14 @@ if __name__ == "__main__":
     set_indices[blocks, threads](particle_binsd, particle_bin_startsd, bin_offsetsd, particle_indicesd, num_particles)
 
     accelerator[blocks, threads](pos_xd, pos_yd, vel_xd, vel_yd, limitsd, r_max, num_particles, parameter_matrixd, particle_tiad,
-                                    acc_xd, acc_yd, bin_neighboursd, particle_binsd, bin_offsetsd, particle_indicesd, particle_bin_startsd)
+                                    acc_xd, acc_yd, bin_neighboursd, particle_binsd, bin_offsetsd, particle_indicesd, particle_bin_startsd, particle_bin_countsd)
 
     reps = 10
     start = time.perf_counter()
     for i in range(reps):
         accelerator[blocks, threads](pos_xd, pos_yd, vel_xd, vel_yd, limitsd, r_max, num_particles, parameter_matrixd, particle_tiad,
-                                    acc_xd, acc_yd, bin_neighboursd, particle_binsd, bin_offsetsd, particle_indicesd, particle_bin_startsd)
+                                    acc_xd, acc_yd, bin_neighboursd, particle_binsd, bin_offsetsd,
+                                    particle_indicesd, particle_bin_startsd, particle_bin_countsd)
         
         acc_xd.copy_to_host(acc_x)
         acc_yd.copy_to_host(acc_y)

@@ -4,6 +4,7 @@ from acceleration_updater import accelerator, bin_particles, cumsum, set_indices
 import time
 from state_parameters import initialise
 
+
 fac = 0.9
 
 @cuda.jit
@@ -39,8 +40,8 @@ def step2(
         vel_x[i] += acc_x[i] * 0.5 * timestep
         vel_y[i] += acc_y[i] * 0.5 * timestep
 
-        vel_x[i] *= fac
-        vel_y[i] *= fac
+        vel_x[i] *= 0.9
+        vel_y[i] *= 0.9
 
 @cuda.jit
 def boundary_condition(
@@ -79,6 +80,7 @@ def integrate(
         bin_offsets: np.ndarray,
         particle_indices: np.ndarray,
         bin_starts: np.ndarray,
+        bin_counts: np.ndarray,
 
         blocks: int,
         threads: int,
@@ -103,7 +105,7 @@ def integrate(
     step1[blocks, threads](vel_x, vel_y, acc_x, acc_y, num_particles, timestep)
 
     accelerator[blocks, threads](pos_x, pos_y, vel_x, vel_y, limits, r_max, num_particles, parameter_matrix, particle_type_index_array,
-                                acc_x, acc_y, bin_neighbours, particle_bins, bin_offsets, particle_indices, bin_starts)
+                                acc_x, acc_y, bin_neighbours, particle_bins, bin_offsets, particle_indices, bin_starts, bin_counts)
     
     step2[blocks, threads](pos_x, pos_y, vel_x, vel_y, acc_x, acc_y, num_particles, timestep)
 
@@ -124,7 +126,7 @@ def setup_bins(
 
 
 if __name__ == "__main__":
-    init = initialise(np.array([100] * 5), seed = 0)
+    init = initialise(np.array([10000] * 5), seed = 0)
 
     pos_x = init["pos_x"]
     pos_y = init["pos_y"]
@@ -204,10 +206,10 @@ if __name__ == "__main__":
     d_particle_indices = cuda.to_device(particle_indices)
     d_bin_neighbours = cuda.to_device(bin_neighbours)
 
-    print(pos_x[:10])
+    print(acc_x[:10])
 
-    reps = 10
-    start = 0
+    reps = 0
+    start = time.perf_counter()
     
     for i in range(reps + 1):
         if i == 1:
@@ -217,20 +219,24 @@ if __name__ == "__main__":
                 d_particle_bins, d_particle_bin_counts, d_bin_offsets, d_particle_bin_starts, d_particle_indices,
                 blocks, threads
         )
-        d_particle_indices.copy_to_host(particle_indices)
+        '''d_particle_indices.copy_to_host(particle_indices)
         d_particle_bin_starts.copy_to_host(particle_bin_starts)
-        print(particle_bin_starts[:10])
+        d_bin_offsets.copy_to_host(bin_offsets)
+        d_particle_bin_counts.copy_to_host(particle_bin_counts)
+        d_particle_bins.copy_to_host(particle_bins)
+        print(particle_bin_starts[:3])'''
 
         integrate(d_pos_x, d_pos_y, d_vel_x, d_vel_y,
                 d_limits, r_max, num_particles,
                 d_parameter_matrix, d_particle_tia, d_acc_x, d_acc_y,
-                d_bin_neighbours, d_particle_bins, d_bin_offsets, d_particle_indices, d_particle_bin_starts,
+                d_bin_neighbours, d_particle_bins, d_bin_offsets, d_particle_indices, d_particle_bin_starts, d_particle_bin_counts,
                 blocks, threads, timestep = 0.5
         )
 
     start = time.perf_counter() - start
 
-    print(f"Physics time: {1e3 * start / reps}")
+    print(f"Physics time: {1e3 * start / max(reps, 1)}")
 
     d_pos_x.copy_to_host(pos_x)
-    print(pos_x[:10])
+    d_acc_x.copy_to_host(acc_x)
+    print(acc_x[:10])
