@@ -7,6 +7,22 @@ from state_parameters import initialise
 
 fac = 0.9
 
+
+# Implementation of reduction for max function
+# WARNING: Manipulates input array. May need to use a copied array
+@cuda.jit
+def max_reduction(result: np.ndarray, d_max: int, n: int):
+    i = cuda.grid(1)
+
+    for d in range(d_max):
+        dp = 1 << d
+        dp1 = dp << 1
+        j = i * dp1
+        if (j + dp1 - 1) < n:
+            if result[j + dp1 - 1] < result[j + dp - 1]:
+                result[j + dp1 - 1] = result[j + dp - 1]
+        cuda.syncthreads()
+
 @cuda.jit
 def step1(
     vel_x: np.ndarray,
@@ -47,30 +63,33 @@ def step2(
 def boundary_condition(
     pos_x: np.ndarray,
     pos_y: np.ndarray,
-    limits: np.ndarray,
+    limitx: float,
+    limity: float,
     num_particles: float
 ):
     i = cuda.grid(1)
     if i < num_particles:
         if pos_x[i] < 0:
-            pos_x[i] += limits[0]
-        elif pos_x[i] > limits[0]:
-            pos_x[i] -= limits[0]
+            pos_x[i] += limitx
+        elif pos_x[i] > limitx:
+            pos_x[i] -= limitx
         if pos_y[i] < 0:
-            pos_y[i] += limits[1]
-        elif pos_y[i] > limits[1]:
-            pos_y[i] -= limits[1]
+            pos_y[i] += limity
+        elif pos_y[i] > limity:
+            pos_y[i] -= limity
 
 @cuda.jit
 def set_sq_speed(
     vel_x: np.ndarray,
     vel_y: np.ndarray,
     sq_speed: np.ndarray,
-    num_particles: np.int64
+    num_particles: np.int64, u
 ):
     i = cuda.grid(1)
     if i < num_particles:
         sq_speed[i] = vel_x[i] * vel_x[i] + vel_y[i] * vel_y[i]
+    elif i < u:
+        sq_speed[i] = 0
 
 @cuda.reduce
 def max_reduce(a, b):
@@ -108,22 +127,26 @@ def integrate(
         timestep: np.float64 = None
 ) -> None:
     if timestep is None:
-        set_sq_speed[blocks, threads](vel_x, vel_y, sq_speed, num_particles)
-        timestep = max_reduce(sq_speed)
+        u = 1
+        while u < num_particles:
+            u = u << 1
+        set_sq_speed[blocks, threads](vel_x, vel_y, sq_speed, num_particles, u)
+        max_reduction[blocks, threads](sq_speed, int(np.log2(num_particles)), u)
+        timestep = sq_speed[u - 1]
         timestep = np.sqrt(timestep)
-        if timestep > 1e-15:
-            timestep = 0.5 / timestep
+        if timestep > 1e-4:
+            timestep = 1 / timestep
         else:
             timestep = 0.01
     
     step1[blocks, threads](vel_x, vel_y, acc_x, acc_y, num_particles, timestep)
 
-    accelerator[blocks, threads](pos_x, pos_y, vel_x, vel_y, limits, r_max, num_particles, parameter_matrix, particle_type_index_array,
-                                acc_x, acc_y, bin_neighbours, particle_bins, bin_offsets, particle_indices, bin_starts, bin_counts)
+    accelerator[blocks, threads](pos_x, pos_y, vel_x, vel_y, limits[0], limits[1], r_max, num_particles, parameter_matrix, particle_type_index_array,
+                                acc_x, acc_y, bin_neighbours, particle_bins, particle_indices, bin_starts, bin_counts)
     
     step2[blocks, threads](pos_x, pos_y, vel_x, vel_y, acc_x, acc_y, num_particles, timestep)
 
-    boundary_condition[blocks, threads](pos_x, pos_y, limits, num_particles)
+    boundary_condition[blocks, threads](pos_x, pos_y, limits[0], limits[1], num_particles)
 
 
 def setup_bins(

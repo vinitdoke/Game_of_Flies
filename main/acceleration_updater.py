@@ -148,7 +148,8 @@ def accelerator(
         pos_y: np.ndarray,
         vel_x: np.ndarray,
         vel_y: np.ndarray,
-        limits: np.ndarray,
+        limitx: float,
+        limity: float,
         r_max :float, # max distance at which particles interact
         num_particles: int,
         parameter_matrix: np.ndarray,
@@ -159,7 +160,6 @@ def accelerator(
 
         bin_neighbours: np.ndarray,
         particle_bins: np.ndarray,
-        bin_offsets: np.ndarray,
         particle_indices: np.ndarray,
         bin_starts: np.ndarray,
         bin_counts: np.ndarray
@@ -183,14 +183,14 @@ def accelerator(
 
                     # Implements periodic BC
                     # assumes r_max < min(limits) / 3
-                    if pos_x[i] < r_max and pos_x_2 > limits[0] - r_max:
-                        pos_x_2 -= limits[0]
-                    elif pos_x_2 < r_max and pos_x[i] > limits[0] - r_max:
-                        pos_x_2 += limits[0]
-                    if pos_y[i] < r_max and pos_y_2 > limits[1] - r_max:
-                        pos_y_2 -= limits[1]
-                    elif pos_y_2 < r_max and pos_y[i] > limits[1] - r_max:
-                        pos_y_2 += limits[1]
+                    if pos_x[i] < r_max and pos_x_2 > limitx - r_max:
+                        pos_x_2 -= limitx
+                    elif pos_x_2 < r_max and pos_x[i] > limitx - r_max:
+                        pos_x_2 += limitx
+                    if pos_y[i] < r_max and pos_y_2 > limity - r_max:
+                        pos_y_2 -= limity
+                    elif pos_y_2 < r_max and pos_y[i] > limity - r_max:
+                        pos_y_2 += limity
 
                     dist = (pos_x[i] - pos_x_2) * (pos_x[i] - pos_x_2) + (pos_y[i] - pos_y_2) * (pos_y[i] - pos_y_2)
                     if 1e-10 < dist < r_max * r_max:

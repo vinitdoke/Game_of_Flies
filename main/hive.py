@@ -26,7 +26,6 @@ if __name__ == "__main__":
     # seed 4, 10, 100, 50, 69, 35, 434, 954, 1039
 
     if not args.blind:
-
         visual = Visualiser()
         visual.set_simulation_instance(simulation)
         visual.draw_boundary()
