@@ -103,7 +103,7 @@ class Visualiser:
             self.simulation.output,
             edge_color=None,
             face_color=self.colour_array,
-            size=7,
+            size=5,
         )
 
     def get_data(self):
