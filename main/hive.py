@@ -14,7 +14,7 @@ def parse():
     parser.add_argument('-i', '--ui', action='store_true', default=False,
                         help='Run simulation with UI')
     parser.add_argument('-r', '--record', type=str, default=None,
-                        help='Path to file to load simulation from')
+                        help='Path to directory to store simulation')
 
     return parser.parse_args()
 
