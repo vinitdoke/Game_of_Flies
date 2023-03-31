@@ -13,6 +13,8 @@ def parse():
                         help='Run simulation without visualisation')
     parser.add_argument('-i', '--ui', action='store_true', default=False,
                         help='Run simulation with UI')
+    parser.add_argument('-r', '--record', action='store_true', default=False,
+                        help='Record simulation in blind mode')
 
     return parser.parse_args()
 
@@ -46,4 +48,4 @@ if __name__ == "__main__":
             app.run()
 
     else:
-        simulation.blind_run(100)
+        simulation.blind_run(100, args.record)

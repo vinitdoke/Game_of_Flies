@@ -114,7 +114,7 @@ class Simulation:
         self.output[:, 1] = self.pos_y[:self.num_particles]
         self.output[:, 2] = 0
 
-    def blind_run(self, n_steps):
+    def blind_run(self, n_steps, record=False, path=None):
         # total_time = 0
         # i = 1
         # frame_rate_window = 5
@@ -123,6 +123,9 @@ class Simulation:
         for _ in range(n_steps):
             # time_start = time.time()
             self.core_step()
+            if record:
+                pass
+
             # time_stop = time.time()
             # if i%frame_rate_window == 0:
             #     print(i)
