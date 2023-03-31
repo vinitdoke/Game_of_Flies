@@ -13,7 +13,8 @@ def parse():
                         help='Run simulation without visualisation')
     parser.add_argument('-i', '--ui', action='store_true', default=False,
                         help='Run simulation with UI')
-    parser.add_argument('-r', '--record', type=str, default='outputs')
+    parser.add_argument('-r', '--record', type=str, default=None,
+                        help='Path to file to load simulation from')
 
     return parser.parse_args()
 

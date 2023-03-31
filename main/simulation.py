@@ -5,10 +5,16 @@ import numpy as np
 import time
 from tqdm import tqdm
 from numba import cuda
+import os
 
 
 class Simulation:
     def __init__(self, n_type, seed=None, limits=(100, 100, 0)) -> None:
+        # FOR NUMPY ARRAY EXPORTING IN BLIND RUN
+        self.record_path = None
+        self.export_set = False
+        self.seed = seed
+
         self.init = initialise(n_type, seed=seed, limits=limits)  # seed 4, 10, 100, 50, 69, 35
 
         self.pos_x = self.init["pos_x"]
@@ -114,17 +120,49 @@ class Simulation:
         self.output[:, 1] = self.pos_y[:self.num_particles]
         self.output[:, 2] = 0
 
-    def blind_run(self, n_steps, record=False, path=None):
+
+    def record(self):
+        if not self.export_set:
+
+            os.mkdir(self.record_path)
+            os.mkdir(os.path.join(self.record_path, "frames"))
+
+            np.savez(os.path.join(self.record_path, "state.npz"),
+                     type_array=self.particle_type_index_array,
+                     limits=self.limits,
+                     parameter_matrix=self.parameter_matrix,
+                     num_particles=self.num_particles,
+                     seed=self.seed)
+
+            self.frame = 0
+            self.export_set = True
+
+
+        # np.save(self.record_path + "/frames/" + f"{self.frame:05}", self.output)
+        np.save(os.path.join(self.record_path, "frames", f"{self.frame:05}"), self.output)
+
+
+    def blind_run(self, n_steps, record=None):
         # total_time = 0
         # i = 1
         # frame_rate_window = 5
+
+        if record is not None:
+            self.record_path = record
+            self.record()
+
+
         start = time.perf_counter()
         #for _ in tqdm(range(n_steps)):
         for _ in range(n_steps):
             # time_start = time.time()
-            self.core_step()
-            if record:
-                pass
+
+            if record is not None:
+                self.update()
+                self.record()
+                self.frame += 1
+            else:
+                self.core_step()
 
             # time_stop = time.time()
             # if i%frame_rate_window == 0:

@@ -9,9 +9,10 @@ from vispy.scene.cameras import PanZoomCamera, TurntableCamera
 # TODO Rename scatters attribute to scene_objects
 
 class Visualiser:
-    def __init__(self):
+    def __init__(self, size = (800, 600)):
 
-        self.canvas = vispy.scene.SceneCanvas(keys="interactive", show=True)
+        self.canvas = vispy.scene.SceneCanvas(keys="interactive", show=False,
+                                              size=size)
         self.view = self.canvas.central_widget.add_view()
         self.scatters = []
 
@@ -53,8 +54,13 @@ class Visualiser:
         if self.print_fps:
             print(f"FPS: {FPS:.2f}")
 
-    def create_Camera(self):
-        limits = self.simulation.limits
+    def create_Camera(self, limits=None):
+        if self.simulation is not None:
+            limits = self.simulation.limits
+        
+        if limits is None:
+            raise ValueError("Limits not set")
+
         if limits[2] == 0:
             self.view.camera = PanZoomCamera(
                 rect=(0, 0, limits[0], limits[1]),
@@ -70,9 +76,13 @@ class Visualiser:
 
     def set_simulation_instance(self, obj):
         self.simulation = obj
-        self.create_Camera()
+        self.init_plotting()
+        
+
+    def init_plotting(self, limits=None, index_list=None):
+        self.create_Camera(limits)
         self.create_scatters(1)
-        self.generate_colour_array()
+        self.generate_colour_array(index_list)
         self.plotting_initialised = True
 
     def create_scatters(self, n_types):
@@ -83,10 +93,15 @@ class Visualiser:
     def set_axis(self):
         self.axis = visuals.XYZAxis(parent=self.view.scene)
 
-    def generate_colour_array(self):
-        index_list = self.simulation.particle_type_index_array[
-            : self.simulation.num_particles
-        ]
+    def generate_colour_array(self, index_list=None):
+        if self.simulation is not None:
+            index_list = self.simulation.particle_type_index_array[
+                : self.simulation.num_particles
+            ]
+
+        if index_list is None:
+            raise ValueError("No index list provided")
+
         colour_array = []
         for index in index_list:
             colour_array.append(self.COLOUR_LIST[index])
@@ -106,11 +121,23 @@ class Visualiser:
             size=5,
         )
 
-    def get_data(self):
-        raise NotImplementedError
+    def blind_update(self, output_data):
+        self.scatters[0].set_data(
+            output_data,
+            edge_color=None,
+            face_color=self.colour_array,
+            size=5,
+        )
 
-    def draw_boundary(self):
-        limits = self.simulation.limits
+    def get_render(self, **kwargs):
+        return self.canvas.render(**kwargs)
+
+    def draw_boundary(self, limits=None):
+        if self.simulation is not None:
+            limits = self.simulation.limits
+        
+        if limits is None:
+            raise ValueError("Limits not set")
 
         if limits[2] == 0:
             self.boundary = visuals.Rectangle(
