@@ -55,14 +55,15 @@ class Simulation:
         self.threads = 32
         self.blocks = int(np.ceil(self.num_particles/self.threads))
 
-        self.num_bin_x = int(np.floor(self.limits[0] / self.r_max))
-        self.num_bin_y = int(np.floor(self.limits[1] / self.r_max))
+        self.num_bin_x = int(np.floor(0.8 * self.limits[0] / self.r_max))
+        self.num_bin_y = int(np.floor(0.8 * self.limits[1] / self.r_max))
         self.bin_size_x = self.limits[0] / self.num_bin_x
         self.bin_size_y = self.limits[0] / self.num_bin_y
 
-        self.bin_neighbours = np.zeros((self.num_bin_x * self.num_bin_y, 9), dtype=np.int32)
+        self.bin_neighbours = np.zeros((self.num_bin_x * self.num_bin_y, 5), dtype=np.int32)
         set_bin_neighbours(self.num_bin_x, self.num_bin_y, self.bin_neighbours)
-        
+        #print(self.bin_neighbours)
+        #print(self.bin_neighbours[0, 6])
 
         i = 1
         while i < self.num_bin_x * self.num_bin_y:
@@ -107,7 +108,7 @@ class Simulation:
                 self.d_parameter_matrix, self.d_particle_tia, self.d_acc_x, self.d_acc_y, self.d_sq_speed,
                 self.d_bin_neighbours, self.d_particle_bins, self.d_bin_offsets, self.d_particle_indices,
                 self.d_particle_bin_starts, self.d_particle_bin_counts,
-                self.blocks, self.threads, timestep = 0.05
+                self.blocks, self.threads, timestep = None
         )
 
     def update(self):
