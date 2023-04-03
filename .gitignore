@@ -1,3 +1,8 @@
 utils/output/
+main/outputs
+main/profile.html
+main/profile.json
 .idea
+profile.html
+profile.json
 main/__pycache__

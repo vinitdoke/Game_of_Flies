@@ -112,9 +112,9 @@ def update_plot(fig, scatters, ax, pos_x, pos_y, pos_z, num_particles, limits, t
 
 def main():
     # Initialise the state parameters
-    n_type_arr = np.array([500, 500, 500])
+    n_type_arr = np.array([5000, 5000, 5000, 5000])
 
-    init = initialise(n_type_arr)
+    init = initialise(n_type_arr, seed=2, limits=[500, 500, 0])
 
     pos_x = init["pos_x"]
     pos_y = init["pos_y"]
@@ -138,42 +138,44 @@ def main():
     parameter_matrix[1, :, :] += 8
 
     parameter_matrix[2, :, :] *= 3
-    parameter_matrix[2, :, :] += 2
+    parameter_matrix[2, :, :] -= 30
 
     parameter_matrix[3, :, :] *= 12
     parameter_matrix[3, :, :] -= 6
 
+    for i in range(parameter_matrix[0,:,0].size):
+        parameter_matrix[3, i, i] = abs(parameter_matrix[3, i, i])
 
-
-    parameter_matrix[0, :, :] = 8
+    '''parameter_matrix[0, :, :] = 8
     parameter_matrix[1, :, :] = 24
     parameter_matrix[2, :, :] = -1
     parameter_matrix[3, 0, 0], parameter_matrix[3, 1, 1], parameter_matrix[3, 2, 2] = 1, 1, 1
     p = 0.5
     parameter_matrix[3, 0, 1], parameter_matrix[3, 0, 2] = -p, p
     parameter_matrix[3, 1, 0], parameter_matrix[3, 1, 2] = p, -p
-    parameter_matrix[3, 2, 0], parameter_matrix[3, 2, 1] = -p, p
+    parameter_matrix[3, 2, 0], parameter_matrix[3, 2, 1] = -p, p'''
     
 
     r_max = np.max(parameter_matrix[1,:,:])
 
-    iterations = 10000
+    iterations = 1000
 
     # Initialise the plotter
-    fig, scatters, ax = setup_plotter(particle_type_index_array, num_particles, extra=False)
+    fig, scatters, ax = setup_plotter(particle_type_index_array, num_particles, extra=False, limits=limits)
     phys_time = 0
     plot_time = 0
-    plot_freq = 5
+    plot_freq = 1
 
     # Run the simulation
     for i in range(iterations):
         phys_start = time.perf_counter()
-        dt = np.sqrt(np.max(vel_x[:num_particles] * vel_x[:num_particles] + vel_y[:num_particles] * vel_y[:num_particles]))
+        '''dt = np.sqrt(np.max(vel_x[:num_particles] * vel_x[:num_particles] + vel_y[:num_particles] * vel_y[:num_particles]))
         
         if dt > 1e-15:
             dt = 0.2 / dt
         else:
-            dt = 0.1
+            dt = 0.1'''
+        dt = 0.05
         integrate(pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, limits, r_max, num_particles,
                 parameter_matrix, particle_type_index_array, acc_x, acc_y, acc_z, dt)
         phys_end = time.perf_counter()
