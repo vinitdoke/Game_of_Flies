@@ -135,9 +135,9 @@ def integrate(
         timestep = sq_speed[u - 1]
         timestep = np.sqrt(timestep)
         if timestep > 1e-4:
-            timestep = 1 / timestep
+            timestep = 0.2 / timestep
         else:
-            timestep = 0.01
+            timestep = 0.05
     
     step1[blocks, threads](vel_x, vel_y, acc_x, acc_y, num_particles, timestep)
 
@@ -155,8 +155,12 @@ def setup_bins(
         blocks, threads
 ):
     bin_particles[blocks, threads](pos_x, pos_y, num_bin_x, bin_size_x, bin_size_y, num_particles,
-                                   particle_bins, particle_bin_counts, bin_offsets, num_bins)
+                                   particle_bins, particle_bin_counts, bin_offsets, num_bins
+    )    
 
+    #tmp = np.zeros(512, dtype=np.int32)
+    #particle_bin_counts.copy_to_host(tmp)
+    #print(f"INSIDE: {tmp}")    
     cumsum[blocks, threads](particle_bin_counts, particle_bin_starts, int(np.log2(num_bins)))
     
     set_indices[blocks, threads](particle_bins, particle_bin_starts, bin_offsets, particle_indices, num_particles)

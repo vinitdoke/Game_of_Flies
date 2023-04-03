@@ -69,12 +69,16 @@ def cumsum(values: np.ndarray, result: np.ndarray, d_max: int):
     
     cuda.syncthreads()
 
-    for d in range(d_max):
-        dp = 1 << d
+    dp = 1
+
+    for _ in range(d_max):
         dp1 = dp << 1
         j = i * dp1
         if (j + dp1 - 1) < n:
-            result[j + dp1 - 1] = result[j + dp - 1] + result[j + dp1 - 1]
+            #result[j + dp1 - 1] = result[j + dp - 1] + result[j + dp1 - 1]
+            cuda.atomic.add(result, j + dp1 - 1, result[j + dp - 1])
+        dp <<= 1
+        
         cuda.syncthreads()
     
     
@@ -84,14 +88,16 @@ def cumsum(values: np.ndarray, result: np.ndarray, d_max: int):
     cuda.syncthreads()
 
     for _ in range(d_max):
-        d = d_max - _ - 1
-        dp = 1 << d
-        dp1 = dp << 1
+        dp1 = dp
+        dp >>= 1
+        
         j = i * dp1
         if (j + dp1 - 1) < n:
-            t = result[j + dp - 1]
+            '''t = result[j + dp - 1]
             result[j + dp - 1] = result[j + dp1 - 1]
-            result[j + dp1 - 1] = t + result[j + dp1 - 1]
+            result[j + dp1 - 1] = t + result[j + dp1 - 1]'''
+            result[j + dp - 1] = cuda.atomic.add(result, j + dp1 - 1, result[j + dp - 1])
+        
         cuda.syncthreads()
 
 # Reorders the particles for usage
@@ -126,20 +132,11 @@ def set_bin_neighbours(num_bin_x: int, num_bin_y: int, bin_neighbours: np.ndarra
                 jm1 = num_bin_y - 1
             elif j == num_bin_y - 1:
                 jp1 = 0
-            '''bin_neighbours[i + j * num_bin_x, 0] = i + j * num_bin_x
+            bin_neighbours[i + j * num_bin_x, 0] = i + j * num_bin_x
             bin_neighbours[i + j * num_bin_x, 1] = ip1 + j * num_bin_x
             bin_neighbours[i + j * num_bin_x, 2] = im1 + jp1 * num_bin_x
             bin_neighbours[i + j * num_bin_x, 3] = i + jp1 * num_bin_x
-            bin_neighbours[i + j * num_bin_x, 4] = ip1 + jp1 * num_bin_x'''
-            bin_neighbours[i + j * num_bin_x, 0] = im1 + jm1 * num_bin_x
-            bin_neighbours[i + j * num_bin_x, 1] = i + jm1 * num_bin_x
-            bin_neighbours[i + j * num_bin_x, 2] = ip1 + jm1 * num_bin_x
-            bin_neighbours[i + j * num_bin_x, 3] = im1 + j * num_bin_x
-            bin_neighbours[i + j * num_bin_x, 4] = i + j * num_bin_x
-            bin_neighbours[i + j * num_bin_x, 5] = ip1 + j * num_bin_x
-            bin_neighbours[i + j * num_bin_x, 6] = im1 + jp1 * num_bin_x
-            bin_neighbours[i + j * num_bin_x, 7] = i + jp1 * num_bin_x
-            bin_neighbours[i + j * num_bin_x, 8] = ip1 + jp1 * num_bin_x
+            bin_neighbours[i + j * num_bin_x, 4] = ip1 + jp1 * num_bin_x
 
 # 2D implementation
 @cuda.jit
@@ -173,7 +170,7 @@ def accelerator(
     cuda.syncthreads()
 
     if i < num_particles:
-        for b in range(9):
+        for b in range(5):
             bin2 = bin_neighbours[particle_bins[i], b]
             for p in range(bin_counts[bin2]):
                 j = particle_indices[bin_starts[bin2] + p] # The second particle
@@ -193,30 +190,32 @@ def accelerator(
                         pos_y_2 += limity
 
                     dist = (pos_x[i] - pos_x_2) * (pos_x[i] - pos_x_2) + (pos_y[i] - pos_y_2) * (pos_y[i] - pos_y_2)
-                    if 1e-10 < dist < r_max * r_max:
+                    if ((1e-10 < dist) and (dist < r_max * r_max + 10000000)) or True:
                         dist = dist ** 0.5
                         acc1 = _cuda_general_force_function(
                             parameter_matrix[-1, particle_type_index_array[i], particle_type_index_array[j]],
                             dist, parameter_matrix[:, particle_type_index_array[i], particle_type_index_array[j]]
                         )
-                        '''acc2 = _cuda_general_force_function(
-                            parameter_matrix[-1, particle_type_index_array[j], particle_type_index_array[i]],
-                            dist, parameter_matrix[:, particle_type_index_array[j], particle_type_index_array[i]]
-                        )'''
-                        a_x1 = acc1 * (pos_x[i] - pos_x_2) / dist
-                        a_y1 = acc1 * (pos_y[i] - pos_y_2) / dist
-                        #a_x2 = acc2 * (pos_x[i] - pos_x_2) / dist
-                        #a_y2 = acc2 * (pos_y[i] - pos_y_2) / dist
+                        
+                        cuda.atomic.add(acc_x, i, -acc1 * (pos_x[i] - pos_x_2) / dist)
+                        cuda.atomic.add(acc_y, i, -acc1 * (pos_y[i] - pos_y_2) / dist)
+                        #cuda.atomic.add(acc_x, i, 1)
+                        #cuda.atomic.add(acc_y, i, 1)
 
-                        cuda.atomic.add(acc_x, i, -a_x1)
-                        cuda.atomic.add(acc_y, i, -a_y1)
+                        if bin2 != particle_bins[i]:
+                            acc2 = _cuda_general_force_function(
+                                parameter_matrix[-1, particle_type_index_array[j], particle_type_index_array[i]],
+                                dist, parameter_matrix[:, particle_type_index_array[j], particle_type_index_array[i]]
+                            )
 
-                        #cuda.atomic.add(acc_x, j, a_x2)
-                        #cuda.atomic.add(acc_y, j, a_y2)
+                            cuda.atomic.add(acc_x, j, acc2 * (pos_x[i] - pos_x_2) / dist)
+                            cuda.atomic.add(acc_y, j, acc2 * (pos_y[i] - pos_y_2) / dist)
+                            #cuda.atomic.add(acc_x, j, 1)
+                            #cuda.atomic.add(acc_y, j, 1)
 
 
 if __name__ == "__main__":
-    init = initialise(np.array([10000]*5), seed = 0)
+    init = initialise(np.array([1000]*5), seed = 0)
 
     pos_x = init["pos_x"]
     pos_y = init["pos_y"]

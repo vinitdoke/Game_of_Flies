@@ -21,8 +21,8 @@ def load_data(path):
     data = np.load(path)
     return data
 
-def vidwriter(dirpath, limits, type_array):
-    resolution = (2*800, 2*600)
+def main(dirpath, limits, type_array):
+    resolution = (4*800, 4*600)
     # resolution = (1980, 1080)
     visual = Visualiser(size=resolution)
     # visual.canvas.size = (1920, 1080)
@@ -31,7 +31,7 @@ def vidwriter(dirpath, limits, type_array):
     visual.draw_boundary(limits)
 
     output_filename = os.path.join(dirpath, "output.mp4")
-    writer = imageio.get_writer(output_filename, fps=15)
+    writer = imageio.get_writer(output_filename, fps=144)
 
     # visual.view.camera.set_range(x=[0, 100])
     # total files in frames directory
