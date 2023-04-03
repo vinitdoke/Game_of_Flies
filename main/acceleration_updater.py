@@ -71,7 +71,7 @@ def cumsum(values: np.ndarray, result: np.ndarray, d_max: int):
 
     dp = 1
 
-    for d in range(d_max):
+    for _ in range(d_max):
         dp1 = dp << 1
         j = i * dp1
         if (j + dp1 - 1) < n:

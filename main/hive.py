@@ -11,7 +11,7 @@ def parse():
     parser = ArgumentParser()
     parser.add_argument('-b', '--blind', action='store_true', default=False,
                         help='Run simulation without visualisation')
-    parser.add_argument('-i', '--ui', action='store_true', default=False,
+    parser.add_argument('-i', '--ui', action='store_true', default=not False,
                         help='Run simulation with UI')
     parser.add_argument('-r', '--record', type=str, default=None,
                         help='Path to directory to store simulation')

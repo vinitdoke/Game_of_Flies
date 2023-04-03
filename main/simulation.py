@@ -93,6 +93,7 @@ class Simulation:
         self.d_particle_bin_starts = cuda.to_device(self.particle_bin_starts)
         self.d_particle_indices = cuda.to_device(self.particle_indices)
         self.d_bin_neighbours = cuda.to_device(self.bin_neighbours)
+        #print(self.bin_neighbours)
 
         self.output = np.zeros((self.num_particles, 3))
     
