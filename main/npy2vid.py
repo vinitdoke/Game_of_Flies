@@ -1,4 +1,5 @@
 import os
+import time
 from argparse import ArgumentParser
 
 import numpy as np
@@ -11,6 +12,8 @@ def parse():
     parser = ArgumentParser()
     parser.add_argument('-i', '--input', type=str, default=None,
                         help='path to directory of simulation')
+    parser.add_argument('-v', '--visual', action='store_true', default=False,
+                        help='Visualise in UI (post sim)')
 
     return parser.parse_args()
 
@@ -18,7 +21,7 @@ def load_data(path):
     data = np.load(path)
     return data
 
-def main(dirpath, limits, type_array):
+def vidwriter(dirpath, limits, type_array):
     resolution = (2*800, 2*600)
     # resolution = (1980, 1080)
     visual = Visualiser(size=resolution)
@@ -42,6 +45,17 @@ def main(dirpath, limits, type_array):
 
     writer.close()
 
+def liveviz(dirpath, limits, type_array):
+    resolution = (2*800, 2*600)
+
+    visual = Visualiser(size=resolution, filepath=dirpath)
+    visual.init_plotting(limits, type_array)
+    visual.draw_boundary(limits)
+    print('here')
+    visual.start()
+        # time.sleep(0.1)
+
+
 
 if __name__ == "__main__":
 
@@ -55,7 +69,9 @@ if __name__ == "__main__":
     type_array = type_array[:num_particles]
     limits = state_data["limits"]
 
-    main(args.input, limits, type_array)
-
+    if args.visual:
+        liveviz(args.input, limits, type_array)
+    else:
+        vidwriter(args.input, limits, type_array)
  
     # data = load_data(args.input)

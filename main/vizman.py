@@ -5,11 +5,12 @@ from vispy import app
 from vispy.color import ColorArray
 from vispy.scene import visuals
 from vispy.scene.cameras import PanZoomCamera, TurntableCamera
+import os
 
 # TODO Rename scatters attribute to scene_objects
 
 class Visualiser:
-    def __init__(self, size = (800, 600)):
+    def __init__(self, size = (800, 600), filepath = None):
 
         self.canvas = vispy.scene.SceneCanvas(keys="interactive", show=False,
                                               size=size)
@@ -21,7 +22,15 @@ class Visualiser:
         self.axis = None
 
         self.timer = app.Timer()
-        self.timer.connect(self.update)
+
+
+        if filepath is not None:
+            self.filepath = filepath
+            self.image_idx = 0
+            self.list_of_frames = os.listdir(os.path.join(self.filepath, "frames"))
+            self.timer.connect(self.update_from_file)
+        else:
+            self.timer.connect(self.update)
 
 
         # BOOLS
@@ -128,6 +137,15 @@ class Visualiser:
             face_color=self.colour_array,
             size=5,
         )
+    
+    def update_from_file(self, _):
+        print('callled')
+        if self.image_idx == len(self.list_of_frames):
+            self.image_idx = 0
+        data = np.load(os.path.join(self.filepath, "frames",self.image_idx))
+        self.blind_update(data)
+        self.image_idx += 1
+
 
     def get_render(self, **kwargs):
         return self.canvas.render(**kwargs)
@@ -177,11 +195,11 @@ class Visualiser:
 
     def start(self):
         if not self.canvas_shown:
-            self.timer.start(0)
+            self.timer.start(0.1)
             self.canvas.show()
             self.canvas_shown = True
         else:
-            self.timer.start(0)
+            self.timer.start(0.1)
 
 
 def dummy_output():
