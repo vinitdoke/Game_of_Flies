@@ -69,12 +69,16 @@ def cumsum(values: np.ndarray, result: np.ndarray, d_max: int):
     
     cuda.syncthreads()
 
+    dp = 1
+
     for d in range(d_max):
-        dp = 1 << d
         dp1 = dp << 1
         j = i * dp1
         if (j + dp1 - 1) < n:
-            result[j + dp1 - 1] = result[j + dp - 1] + result[j + dp1 - 1]
+            #result[j + dp1 - 1] = result[j + dp - 1] + result[j + dp1 - 1]
+            cuda.atomic.add(result, j + dp1 - 1, result[j + dp - 1])
+        dp <<= 1
+        
         cuda.syncthreads()
     
     
@@ -84,14 +88,16 @@ def cumsum(values: np.ndarray, result: np.ndarray, d_max: int):
     cuda.syncthreads()
 
     for _ in range(d_max):
-        d = d_max - _ - 1
-        dp = 1 << d
-        dp1 = dp << 1
+        dp1 = dp
+        dp >>= 1
+        
         j = i * dp1
         if (j + dp1 - 1) < n:
-            t = result[j + dp - 1]
+            '''t = result[j + dp - 1]
             result[j + dp - 1] = result[j + dp1 - 1]
-            result[j + dp1 - 1] = t + result[j + dp1 - 1]
+            result[j + dp1 - 1] = t + result[j + dp1 - 1]'''
+            result[j + dp - 1] = cuda.atomic.add(result, j + dp1 - 1, result[j + dp - 1])
+        
         cuda.syncthreads()
 
 # Reorders the particles for usage
@@ -184,7 +190,7 @@ def accelerator(
                         pos_y_2 += limity
 
                     dist = (pos_x[i] - pos_x_2) * (pos_x[i] - pos_x_2) + (pos_y[i] - pos_y_2) * (pos_y[i] - pos_y_2)
-                    if 1e-10 < dist < r_max * r_max:
+                    if ((1e-10 < dist) and (dist < r_max * r_max + 10000000)) or True:
                         dist = dist ** 0.5
                         acc1 = _cuda_general_force_function(
                             parameter_matrix[-1, particle_type_index_array[i], particle_type_index_array[j]],
@@ -193,6 +199,8 @@ def accelerator(
                         
                         cuda.atomic.add(acc_x, i, -acc1 * (pos_x[i] - pos_x_2) / dist)
                         cuda.atomic.add(acc_y, i, -acc1 * (pos_y[i] - pos_y_2) / dist)
+                        #cuda.atomic.add(acc_x, i, 1)
+                        #cuda.atomic.add(acc_y, i, 1)
 
                         if bin2 != particle_bins[i]:
                             acc2 = _cuda_general_force_function(
@@ -202,6 +210,8 @@ def accelerator(
 
                             cuda.atomic.add(acc_x, j, acc2 * (pos_x[i] - pos_x_2) / dist)
                             cuda.atomic.add(acc_y, j, acc2 * (pos_y[i] - pos_y_2) / dist)
+                            #cuda.atomic.add(acc_x, j, 1)
+                            #cuda.atomic.add(acc_y, j, 1)
 
 
 if __name__ == "__main__":

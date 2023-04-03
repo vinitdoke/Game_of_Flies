@@ -40,7 +40,7 @@ class Simulation:
         self.parameter_matrix[1, :, :] += 8
 
         self.parameter_matrix[2, :, :] *= 3
-        self.parameter_matrix[2, :, :] -= 30
+        self.parameter_matrix[2, :, :] -= 10
 
         self.parameter_matrix[3, :, :] *= 12
         self.parameter_matrix[3, :, :] -= 6
@@ -52,18 +52,16 @@ class Simulation:
         self.r_max = np.max(self.parameter_matrix[1, :, :])
 
 
-        self.threads = 32
+        self.threads = 512 # weird issues with lower no. of threads. Do not reduce
         self.blocks = int(np.ceil(self.num_particles/self.threads))
 
-        self.num_bin_x = int(np.floor(0.8 * self.limits[0] / self.r_max))
-        self.num_bin_y = int(np.floor(0.8 * self.limits[1] / self.r_max))
+        self.num_bin_x = int(np.floor(self.limits[0] / self.r_max))
+        self.num_bin_y = int(np.floor(self.limits[1] / self.r_max))
         self.bin_size_x = self.limits[0] / self.num_bin_x
         self.bin_size_y = self.limits[0] / self.num_bin_y
 
         self.bin_neighbours = np.zeros((self.num_bin_x * self.num_bin_y, 5), dtype=np.int32)
         set_bin_neighbours(self.num_bin_x, self.num_bin_y, self.bin_neighbours)
-        #print(self.bin_neighbours)
-        #print(self.bin_neighbours[0, 6])
 
         i = 1
         while i < self.num_bin_x * self.num_bin_y:
@@ -110,6 +108,49 @@ class Simulation:
                 self.d_particle_bin_starts, self.d_particle_bin_counts,
                 self.blocks, self.threads, timestep = None
         )
+        '''self.d_acc_x.copy_to_host(self.acc_x)
+        self.d_acc_y.copy_to_host(self.acc_y)
+        self.d_particle_bins.copy_to_host(self.particle_bins)
+        self.d_particle_bin_counts.copy_to_host(self.particle_bin_counts)
+        self.d_particle_bin_starts.copy_to_host(self.particle_bin_starts)
+        self.d_particle_indices.copy_to_host(self.particle_indices)'''
+
+        # For debugging, do not remove:
+        '''start_test = np.cumsum(self.particle_bin_counts)
+        print(np.allclose(start_test[:-1], self.particle_bin_starts[1:]))
+        i = 0
+        while start_test[i] == self.particle_bin_starts[i+1]:
+            i += 1
+        print(f"i:{i} len:{len(self.particle_bin_starts)}")
+        print(self.particle_bin_counts)
+        #print(start_test)
+        print(self.particle_bin_starts)'''
+
+        '''print("\n\n\n__________________________________________")
+        for tb in range(5):
+            print(f"START--  {tb}")
+            bin = self.particle_bins[tb]
+            print(f"acc x: {self.acc_x[tb]}")
+            print(f"acc y: {self.acc_y[tb]}")
+            #print(self.particle_bin_counts)
+            print(f"bin number: {bin}")
+            print(self.particle_indices[self.particle_bin_starts[bin]:self.particle_bin_starts[bin]+self.particle_bin_counts[bin]])
+            a = self.bin_neighbours[self.particle_bins[tb], :]
+            a2 = np.empty_like(self.bin_neighbours)
+            c = 0
+            for i in range(self.num_bin_x * self.num_bin_y):
+                if self.particle_bins[tb] in self.bin_neighbours[i, :]:
+                    a2[c] = self.bin_neighbours[i, :]
+                    c += 1
+            
+            print(f"self neighbours: {a}")
+            print(f"other neighbours:  {a2[:c]}")
+            
+            b = self.particle_bin_counts[a]
+            b2 = self.particle_bin_counts[a2[:c, 0]]
+            print(f"b:  {b}   sum b:  {np.sum(b)}")
+            print(f"b2:  {b2} sum b2:  {np.sum(b2) - self.particle_bin_counts[self.particle_bins[tb]]}")
+            print("END--\n\n")'''
 
     def update(self):
         self.core_step()
