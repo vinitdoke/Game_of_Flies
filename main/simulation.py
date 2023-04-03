@@ -107,7 +107,7 @@ class Simulation:
                 self.d_parameter_matrix, self.d_particle_tia, self.d_acc_x, self.d_acc_y, self.d_sq_speed,
                 self.d_bin_neighbours, self.d_particle_bins, self.d_bin_offsets, self.d_particle_indices,
                 self.d_particle_bin_starts, self.d_particle_bin_counts,
-                self.blocks, self.threads, timestep = 0.01
+                self.blocks, self.threads, timestep = 0.05
         )
 
     def update(self):
