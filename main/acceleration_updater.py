@@ -18,16 +18,27 @@ def _cuda_general_force_function(profile_type: int, input_vect: float, args: np.
     """
     
     if profile_type == 0:
-        if 0 <= input_vect < args[0]:
+        # if 0 <= input_vect < args[0]:
+        #     return -args[2] / args[0] * input_vect + args[2]
+        # elif args[0] <= input_vect < (args[0] + args[1]) / 2:
+        #     return 2 * args[3] / (args[1] - args[0]) * (input_vect -
+        #                                                 args[0])
+        # elif (args[0] + args[1]) / 2 <= input_vect < args[1]:
+        #     return 2 * args[3] / (args[1] - args[0]) * (args[1] -
+        #                                                 input_vect)
+        # else:
+        #     return 0
+        
+        if input_vect < 0 or input_vect > args[1]:
+            return 0
+        elif input_vect < args[0]:
             return -args[2] / args[0] * input_vect + args[2]
-        elif args[0] <= input_vect < (args[0] + args[1]) / 2:
+        elif input_vect < (args[0] + args[1]) / 2:
             return 2 * args[3] / (args[1] - args[0]) * (input_vect -
                                                         args[0])
-        elif (args[0] + args[1]) / 2 <= input_vect < args[1]:
+        else:
             return 2 * args[3] / (args[1] - args[0]) * (args[1] -
                                                         input_vect)
-        else:
-            return 0
     elif profile_type == 1:
         raise NotImplementedError("Position Input not implemented yet")
 
