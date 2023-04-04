@@ -25,6 +25,7 @@ class Visualiser:
 
 
         if filepath is not None:
+            # print('filepath set')
             self.filepath = filepath
             self.image_idx = 0
             self.list_of_frames = os.listdir(os.path.join(self.filepath, "frames"))
@@ -71,11 +72,13 @@ class Visualiser:
             raise ValueError("Limits not set")
 
         if limits[2] == 0:
+            print('PanZoomCamera')
             self.view.camera = PanZoomCamera(
                 rect=(0, 0, limits[0], limits[1]),
                 aspect=1,
             )
         else:
+            print('TurntableCamera')
             self.view.camera = TurntableCamera(
                 center=(limits[0] / 2, limits[1] / 2, limits[2] / 2),
                 fov=60,
@@ -139,13 +142,12 @@ class Visualiser:
         )
     
     def update_from_file(self, _):
-        print('callled')
         if self.image_idx == len(self.list_of_frames):
+            # print('replaying')
             self.image_idx = 0
-        data = np.load(os.path.join(self.filepath, "frames",self.image_idx))
+        data = np.load(os.path.join(self.filepath, "frames", self.list_of_frames[self.image_idx]))
         self.blind_update(data)
         self.image_idx += 1
-
 
     def get_render(self, **kwargs):
         return self.canvas.render(**kwargs)
@@ -192,18 +194,19 @@ class Visualiser:
             self.boundary = visuals.Line(
                 pos=pts, color=(1, 1, 1, 0.5), width=1, parent=self.view.scene
             )
+        print('Boundary drawn')
 
     def start(self):
         if not self.canvas_shown:
-            self.timer.start(0.1)
             self.canvas.show()
             self.canvas_shown = True
+            self.timer.start()
         else:
-            self.timer.start(0.1)
+            self.timer.start()
 
 
-def dummy_output():
-    # 2D output in 3D structure
-    out = np.random.uniform(0, 100, (10000, 3))
-    out[:, 2] = 0
-    return out
+# def dummy_output():
+#     # 2D output in 3D structure
+#     out = np.random.uniform(0, 100, (10000, 3))
+#     out[:, 2] = 0
+#     return out
