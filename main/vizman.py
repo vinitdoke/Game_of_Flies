@@ -50,8 +50,8 @@ class Visualiser:
 
         self.COLOUR_LIST = [
             "red",
-            "blue",
             "green",
+            "blue",
             "yellow",
             "orange",
             "purple",

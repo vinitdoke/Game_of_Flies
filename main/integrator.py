@@ -5,8 +5,8 @@ import time
 from state_parameters import initialise
 
 
-fac = 0.9
-
+fac = 1.0
+max_spd = 30
 
 # Implementation of reduction for max function
 # WARNING: Manipulates input array. May need to use a copied array
@@ -37,6 +37,12 @@ def step1(
         vel_x[i] += acc_x[i] * 0.5 * timestep
         vel_y[i] += acc_y[i] * 0.5 * timestep
 
+        spd = vel_x[i] * vel_x[i] + vel_y[i] * vel_y[i]
+        if spd > max_spd * max_spd:
+            spd = spd ** 0.5
+            vel_x[i] *= max_spd / spd
+            vel_y[i] *= max_spd / spd
+
 @cuda.jit
 def step2(
     pos_x: np.ndarray,
@@ -56,8 +62,8 @@ def step2(
         vel_x[i] += acc_x[i] * 0.5 * timestep
         vel_y[i] += acc_y[i] * 0.5 * timestep
 
-        vel_x[i] *= 0.9
-        vel_y[i] *= 0.9
+        vel_x[i] *= fac
+        vel_y[i] *= fac
 
 @cuda.jit
 def boundary_condition(
@@ -112,6 +118,13 @@ def integrate(
         acc_x: np.ndarray,
         acc_y: np.ndarray,
 
+        num_types: int,
+        boid_acc_x: np.ndarray,
+        boid_acc_y: np.ndarray,
+        boid_vel_x: np.ndarray,
+        boid_vel_y: np.ndarray,
+        boid_counts: np.ndarray,
+
         sq_speed: np.ndarray,
 
         bin_neighbours: np.ndarray,
@@ -134,15 +147,16 @@ def integrate(
         max_reduction[blocks, threads](sq_speed, int(np.log2(num_particles)), u)
         timestep = sq_speed[u - 1]
         timestep = np.sqrt(timestep)
-        if timestep > 1e-4:
+        if timestep > 1e-6:
             timestep = 0.2 / timestep
         else:
-            timestep = 0.05
+            timestep = 0.1
     
     step1[blocks, threads](vel_x, vel_y, acc_x, acc_y, num_particles, timestep)
 
     accelerator[blocks, threads](pos_x, pos_y, vel_x, vel_y, limits[0], limits[1], r_max, num_particles, parameter_matrix, particle_type_index_array,
-                                acc_x, acc_y, bin_neighbours, particle_bins, particle_indices, bin_starts, bin_counts)
+                                acc_x, acc_y, num_types, boid_acc_x, boid_acc_y, boid_vel_x, boid_vel_y, boid_counts,
+                                bin_neighbours, particle_bins, particle_indices, bin_starts, bin_counts)
     
     step2[blocks, threads](pos_x, pos_y, vel_x, vel_y, acc_x, acc_y, num_particles, timestep)
 
@@ -164,120 +178,3 @@ def setup_bins(
     cumsum[blocks, threads](particle_bin_counts, particle_bin_starts, int(np.log2(num_bins)))
     
     set_indices[blocks, threads](particle_bins, particle_bin_starts, bin_offsets, particle_indices, num_particles)
-
-
-if __name__ == "__main__":
-    init = initialise(np.array([10000] * 5), seed = 0)
-
-    pos_x = init["pos_x"]
-    pos_y = init["pos_y"]
-    pos_z = init["pos_z"]
-    vel_x = init["vel_x"]
-    vel_y = init["vel_y"]
-    vel_z = init["vel_z"]
-    acc_x = init["acc_x"]
-    acc_y = init["acc_y"]
-    acc_z = init["acc_z"]
-    limits = np.array(init["limits"])
-    num_particles = np.sum(init["n_type_array"])
-    particle_type_index_array = np.array(init["particle_type_indx_array"], dtype="int32")
-    parameter_matrix = init["parameter_matrix"]
-    r_max = init["max_rmax"]
-
-    parameter_matrix[0, :, :] *= 3
-    parameter_matrix[0, :, :] += 5
-
-    parameter_matrix[1, :, :] *= 5
-    parameter_matrix[1, :, :] += 8
-
-    parameter_matrix[2, :, :] *= 3
-    parameter_matrix[2, :, :] -= 10
-
-    parameter_matrix[3, :, :] *= 12
-    parameter_matrix[3, :, :] -= 6
-
-    #parameter_matrix[1, :, :] = 6
-
-    # Always attract self
-    for i in range(parameter_matrix[0,:,0].size):
-        parameter_matrix[3, i, i] = abs(parameter_matrix[3, i, i])
-    
-    r_max = np.max(parameter_matrix[1, :, :])
-    
-
-    threads = 64
-    blocks = int(np.ceil(num_particles/threads))
-
-    num_bin_x = int(np.floor(limits[0] / r_max))
-    num_bin_y = int(np.floor(limits[1] / r_max))
-    bin_size_x = limits[0] / num_bin_x
-    bin_size_y = limits[0] / num_bin_y
-
-    bin_neighbours = np.zeros((num_bin_x * num_bin_y, 5), dtype=np.int32)
-    set_bin_neighbours(num_bin_x, num_bin_y, bin_neighbours)
-    
-
-    i = 1
-    while i < num_bin_x * num_bin_y:
-        i *= 2
-
-    particle_bin_counts = np.zeros(i, dtype=np.int32)
-    num_bins = particle_bin_counts.size
-    
-
-    particle_bin_starts = np.zeros_like(particle_bin_counts, dtype=np.int32)
-    particle_bins = np.zeros_like(pos_x, dtype=np.int32)
-    particle_indices = np.zeros_like(pos_x, dtype=np.int64)
-    bin_offsets = np.zeros_like(pos_x, dtype=np.int32)
-    
-    d_pos_x = cuda.to_device(pos_x)
-    d_pos_y = cuda.to_device(pos_y)
-    d_vel_x = cuda.to_device(vel_x)
-    d_vel_y = cuda.to_device(vel_y)
-    d_acc_x = cuda.to_device(acc_x)
-    d_acc_y = cuda.to_device(acc_y)
-    d_limits = cuda.to_device(limits)
-    d_particle_tia = cuda.to_device(particle_type_index_array)
-    d_parameter_matrix = cuda.to_device(parameter_matrix)
-
-    d_bin_offsets = cuda.to_device(bin_offsets)
-    d_particle_bins = cuda.to_device(particle_bins)
-    d_particle_bin_counts = cuda.to_device(particle_bin_counts)
-    d_particle_bin_starts = cuda.to_device(particle_bin_starts)
-    d_particle_indices = cuda.to_device(particle_indices)
-    d_bin_neighbours = cuda.to_device(bin_neighbours)
-
-    print(pos_x[:10])
-
-    reps = 0
-    start = time.perf_counter()
-    
-    for i in range(reps + 1):
-        if i == 1:
-            start = time.perf_counter()
-
-        setup_bins(d_pos_x, d_pos_y, num_bin_x, bin_size_x, bin_size_y, num_bins, num_particles,
-                d_particle_bins, d_particle_bin_counts, d_bin_offsets, d_particle_bin_starts, d_particle_indices,
-                blocks, threads
-        )
-        '''d_particle_indices.copy_to_host(particle_indices)
-        d_particle_bin_starts.copy_to_host(particle_bin_starts)
-        d_bin_offsets.copy_to_host(bin_offsets)
-        d_particle_bin_counts.copy_to_host(particle_bin_counts)
-        d_particle_bins.copy_to_host(particle_bins)
-        print(particle_bin_starts[:])
-        print(particle_bin_counts[:])'''
-
-        integrate(d_pos_x, d_pos_y, d_vel_x, d_vel_y,
-                d_limits, r_max, num_particles,
-                d_parameter_matrix, d_particle_tia, d_acc_x, d_acc_y,
-                d_bin_neighbours, d_particle_bins, d_bin_offsets, d_particle_indices, d_particle_bin_starts, d_particle_bin_counts,
-                blocks, threads, timestep = 0.1
-        )
-
-    start = time.perf_counter() - start
-
-    print(f"Physics time: {1e3 * start / max(reps, 1)}")
-
-    d_pos_x.copy_to_host(pos_x)
-    print(pos_x[:10])

@@ -29,11 +29,13 @@ class Simulation:
         self.limits = np.array(self.init["limits"])
         self.num_particles = np.sum(self.init["n_type_array"])
         self.particle_type_index_array = np.array(self.init["particle_type_indx_array"], dtype="int32")
+        self.num_types = np.max(self.particle_type_index_array) + 1
         self.parameter_matrix = self.init["parameter_matrix"]
         self.r_max = self.init["max_rmax"]
         self.sq_speed = np.zeros_like(self.vel_x)
 
-        self.parameter_matrix[0, :, :] *= 3
+        # r_min, r_max, f_min, f_max
+        '''self.parameter_matrix[0, :, :] *= 3
         self.parameter_matrix[0, :, :] += 5
 
         self.parameter_matrix[1, :, :] *= 5
@@ -47,9 +49,39 @@ class Simulation:
 
         # Always attract self
         for i in range(self.parameter_matrix[0,:,0].size):
-            self.parameter_matrix[3, i, i] = abs(self.parameter_matrix[3, i, i]) 
-
+            self.parameter_matrix[3, i, i] = abs(self.parameter_matrix[3, i, i])
+        
         self.r_max = np.max(self.parameter_matrix[1, :, :])
+        '''
+
+        # r_max, separation, alignment, cohesion
+        '''self.parameter_matrix[0, :, :] *= 0
+        self.parameter_matrix[0, :, :] += 5
+
+        self.parameter_matrix[1, :, :] *= 0
+        self.parameter_matrix[1, :, :] += 3
+
+        self.parameter_matrix[2, :, :] *= 0
+        self.parameter_matrix[2, :, :] += 3
+
+        self.parameter_matrix[3, :, :] *= 0
+        self.parameter_matrix[3, :, :] += 0.05'''
+
+        self.parameter_matrix[0, :, :] *= 6
+        self.parameter_matrix[0, :, :] += 2
+
+        self.parameter_matrix[1, :, :] *= 5
+        self.parameter_matrix[1, :, :] += 3
+
+        self.parameter_matrix[2, :, :] *= 5
+        self.parameter_matrix[2, :, :] += 3
+
+        self.parameter_matrix[3, :, :] *= 0.05
+        self.parameter_matrix[3, :, :] += 0.05
+
+        self.parameter_matrix[-1, :, :] = 1
+
+        self.r_max = np.max(self.parameter_matrix[0, :, :])
 
 
         self.threads = 512 # weird issues with lower no. of threads. Do not reduce
@@ -75,6 +107,12 @@ class Simulation:
         self.particle_bins = np.zeros_like(self.pos_x, dtype=np.int32)
         self.particle_indices = np.zeros_like(self.pos_x, dtype=np.int32)
         self.bin_offsets = np.zeros_like(self.pos_x, dtype=np.int32)
+
+        self.boid_acc_x = np.zeros(self.num_particles * self.num_types, dtype=np.float32)
+        self.boid_acc_y = np.zeros_like(self.boid_acc_x, dtype=np.float32)
+        self.boid_vel_x = np.zeros_like(self.boid_acc_x, dtype=np.float32)
+        self.boid_vel_y = np.zeros_like(self.boid_acc_x, dtype=np.float32)
+        self.boid_counts = np.zeros_like(self.boid_acc_x, dtype=np.int32)
         
         self.d_pos_x = cuda.to_device(self.pos_x)
         self.d_pos_y = cuda.to_device(self.pos_y)
@@ -93,6 +131,12 @@ class Simulation:
         self.d_particle_bin_starts = cuda.to_device(self.particle_bin_starts)
         self.d_particle_indices = cuda.to_device(self.particle_indices)
         self.d_bin_neighbours = cuda.to_device(self.bin_neighbours)
+
+        self.d_boid_acc_x = cuda.to_device(self.boid_acc_x)
+        self.d_boid_acc_y = cuda.to_device(self.boid_acc_y)
+        self.d_boid_vel_x = cuda.to_device(self.boid_vel_x)
+        self.d_boid_vel_y = cuda.to_device(self.boid_vel_y)
+        self.d_boid_counts = cuda.to_device(self.boid_counts)
         #print(self.bin_neighbours)
 
         self.output = np.zeros((self.num_particles, 3))
@@ -104,10 +148,11 @@ class Simulation:
         )
         integrate(self.d_pos_x, self.d_pos_y, self.d_vel_x, self.d_vel_y,
                 self.limits, self.r_max, self.num_particles,
-                self.d_parameter_matrix, self.d_particle_tia, self.d_acc_x, self.d_acc_y, self.d_sq_speed,
-                self.d_bin_neighbours, self.d_particle_bins, self.d_bin_offsets, self.d_particle_indices,
-                self.d_particle_bin_starts, self.d_particle_bin_counts,
-                self.blocks, self.threads, timestep = None
+                self.d_parameter_matrix, self.d_particle_tia, self.d_acc_x, self.d_acc_y,
+                self.num_types, self.d_boid_acc_x, self.d_boid_acc_y, self.d_boid_vel_x, self.d_boid_vel_y, self.d_boid_counts,
+                self.d_sq_speed, self.d_bin_neighbours, self.d_particle_bins, self.d_bin_offsets,
+                self.d_particle_indices, self.d_particle_bin_starts, self.d_particle_bin_counts,
+                self.blocks, self.threads, timestep = 0.01
         )
         '''self.d_acc_x.copy_to_host(self.acc_x)
         self.d_acc_y.copy_to_host(self.acc_y)
