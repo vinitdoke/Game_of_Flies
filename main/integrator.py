@@ -6,7 +6,7 @@ from state_parameters import initialise
 
 
 fac = 1.0
-max_spd = 30
+max_spd = 20
 
 # Implementation of reduction for max function
 # WARNING: Manipulates input array. May need to use a copied array

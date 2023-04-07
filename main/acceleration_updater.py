@@ -136,6 +136,8 @@ def set_bin_neighbours(num_bin_x: int, num_bin_y: int, bin_neighbours: np.ndarra
             bin_neighbours[i + j * num_bin_x, 3] = i + jp1 * num_bin_x
             bin_neighbours[i + j * num_bin_x, 4] = ip1 + jp1 * num_bin_x
 
+
+
 # 2D implementation
 @cuda.jit
 def accelerator(
@@ -181,7 +183,20 @@ def accelerator(
     cuda.syncthreads()
 
     if i < num_particles:
+        
         p1 = particle_type_index_array[i]
+
+        '''d = 10
+        pf = 30
+        if pos_x[i] < d:
+            cuda.atomic.add(acc_x, i, pf)
+        elif pos_x[i] > limitx - d:
+            cuda.atomic.add(acc_x, i, -pf)
+        if pos_y[i] < d:
+            cuda.atomic.add(acc_y, i, pf)
+        elif pos_y[i] > limity - d:
+            cuda.atomic.add(acc_y, i, -pf)'''
+
         for b in range(5):
             bin2 = bin_neighbours[particle_bins[i], b]
             for p in range(bin_counts[bin2]):
