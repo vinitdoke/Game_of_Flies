@@ -46,42 +46,54 @@ class Simulation:
         self.parameter_matrix[3, :, :] -= 6
 
         # Always attract self
-        for i in range(self.parameter_matrix[0,:,0].size):
-            self.parameter_matrix[3, i, i] = abs(self.parameter_matrix[3, i, i]) 
+        for i in range(self.parameter_matrix[0, :, 0].size):
+            self.parameter_matrix[3, i, i] = abs(self.parameter_matrix[3, i, i])
 
         self.r_max = np.max(self.parameter_matrix[1, :, :])
 
-
-        self.threads = 512 # weird issues with lower no. of threads. Do not reduce
+        self.threads = 512  # weird issues with lower no. of threads. Do not reduce
         self.blocks = int(np.ceil(self.num_particles/self.threads))
 
         self.num_bin_x = int(np.floor(self.limits[0] / self.r_max))
         self.num_bin_y = int(np.floor(self.limits[1] / self.r_max))
+        self.num_bin_z = int(np.floor(self.limits[2] / self.r_max))
         self.bin_size_x = self.limits[0] / self.num_bin_x
-        self.bin_size_y = self.limits[0] / self.num_bin_y
+        self.bin_size_y = self.limits[1] / self.num_bin_y
+        if self.limits[2] != 0:
+            self.bin_size_z = self.limits[2] / self.num_bin_z
+        else:
+            self.bin_size_z = 0
 
-        self.bin_neighbours = np.zeros((self.num_bin_x * self.num_bin_y, 5), dtype=np.int32)
-        set_bin_neighbours(self.num_bin_x, self.num_bin_y, self.bin_neighbours)
-
-        i = 1
-        while i < self.num_bin_x * self.num_bin_y:
-            i *= 2
+        if self.limits[2] == 0:
+            self.bin_neighbours = np.zeros((self.num_bin_x * self.num_bin_y, 5), dtype=np.int32)
+            set_bin_neighbours(self.num_bin_x, self.num_bin_y, self.num_bin_z, self.bin_neighbours)
+            i = 1
+            while i < self.num_bin_x * self.num_bin_y:
+                i *= 2
+        else:
+            self.bin_neighbours = np.zeros((self.num_bin_x * self.num_bin_y * self.num_bin_z, 14), dtype=np.int32)
+            set_bin_neighbours(self.num_bin_x, self.num_bin_y, self.num_bin_z, self.bin_neighbours)
+            i = 1
+            while i < self.num_bin_x * self.num_bin_y * self.num_bin_z:
+                i *= 2
 
         self.particle_bin_counts = np.zeros(i, dtype=np.int32)
         self.num_bins = self.particle_bin_counts.size
-        
 
         self.particle_bin_starts = np.zeros_like(self.particle_bin_counts, dtype=np.int32)
         self.particle_bins = np.zeros_like(self.pos_x, dtype=np.int32)
         self.particle_indices = np.zeros_like(self.pos_x, dtype=np.int32)
         self.bin_offsets = np.zeros_like(self.pos_x, dtype=np.int32)
-        
+
         self.d_pos_x = cuda.to_device(self.pos_x)
         self.d_pos_y = cuda.to_device(self.pos_y)
+        self.d_pos_z = cuda.to_device(self.pos_z)
         self.d_vel_x = cuda.to_device(self.vel_x)
         self.d_vel_y = cuda.to_device(self.vel_y)
+        self.d_vel_z = cuda.to_device(self.vel_z)
         self.d_acc_x = cuda.to_device(self.acc_x)
         self.d_acc_y = cuda.to_device(self.acc_y)
+        self.d_acc_z = cuda.to_device(self.acc_z)
         self.d_sq_speed = cuda.to_device(self.sq_speed)
         self.d_limits = cuda.to_device(self.limits)
         self.d_particle_tia = cuda.to_device(self.particle_type_index_array)
@@ -96,15 +108,17 @@ class Simulation:
         #print(self.bin_neighbours)
 
         self.output = np.zeros((self.num_particles, 3))
-    
+
     def core_step(self):
-        setup_bins(self.d_pos_x, self.d_pos_y, self.num_bin_x, self.bin_size_x, self.bin_size_y, self.num_bins, self.num_particles,
-                self.d_particle_bins, self.d_particle_bin_counts, self.d_bin_offsets, self.d_particle_bin_starts, self.d_particle_indices,
-                self.blocks, self.threads
+        setup_bins(self.d_pos_x, self.d_pos_y, self.d_pos_z,
+                   self.num_bin_x, self.num_bin_y, self.num_bin_z, self.bin_size_x, self.bin_size_y, self.bin_size_z,
+                   self.num_bins, self.num_particles, self.d_particle_bins, self.d_particle_bin_counts,
+                   self.d_bin_offsets,
+                   self.d_particle_bin_starts, self.d_particle_indices, self.blocks, self.threads
         )
-        integrate(self.d_pos_x, self.d_pos_y, self.d_vel_x, self.d_vel_y,
+        integrate(self.d_pos_x, self.d_pos_y, self.d_pos_z, self.d_vel_x, self.d_vel_y, self.d_vel_z,
                 self.limits, self.r_max, self.num_particles,
-                self.d_parameter_matrix, self.d_particle_tia, self.d_acc_x, self.d_acc_y, self.d_sq_speed,
+                self.d_parameter_matrix, self.d_particle_tia, self.d_acc_x, self.d_acc_y, self.d_acc_z, self.d_sq_speed,
                 self.d_bin_neighbours, self.d_particle_bins, self.d_bin_offsets, self.d_particle_indices,
                 self.d_particle_bin_starts, self.d_particle_bin_counts,
                 self.blocks, self.threads, timestep = None
@@ -158,10 +172,11 @@ class Simulation:
 
         self.d_pos_x.copy_to_host(self.pos_x)
         self.d_pos_y.copy_to_host(self.pos_y)
+        self.d_pos_z.copy_to_host(self.pos_z)
 
         self.output[:, 0] = self.pos_x[:self.num_particles]
         self.output[:, 1] = self.pos_y[:self.num_particles]
-        self.output[:, 2] = 0
+        self.output[:, 2] = self.pos_z[:self.num_particles]
 
 
     def record(self):

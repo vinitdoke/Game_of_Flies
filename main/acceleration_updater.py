@@ -16,7 +16,7 @@ def _cuda_general_force_function(profile_type: int, input_vect: float, args: np.
     :param args: r_min, r_max, f_min, f_max
     :return: force value
     """
-    
+
     if profile_type == 0:
         # if 0 <= input_vect < args[0]:
         #     return -args[2] / args[0] * input_vect + args[2]
@@ -28,7 +28,7 @@ def _cuda_general_force_function(profile_type: int, input_vect: float, args: np.
         #                                                 input_vect)
         # else:
         #     return 0
-        
+
         if input_vect < 0 or input_vect > args[1]:
             return 0
         elif input_vect < args[0]:
@@ -49,24 +49,38 @@ def _cuda_general_force_function(profile_type: int, input_vect: float, args: np.
 def bin_particles(
     pos_x: np.ndarray,
     pos_y: np.ndarray,
-    #pos_z: np.ndarray,
+    pos_z: np.ndarray,
     num_bin_x: int,
-    bin_size_x :float,
-    bin_size_y :float,
+    num_bin_y: int,
+    num_bin_z: int,
+    bin_size_x:float,
+    bin_size_y:float,
+    bin_size_z:float,
     num_particles: int,
     particle_bins: np.ndarray,
     particle_bin_counts: np.ndarray,
     bin_offsets: np.ndarray,
     num_bins: int
 ):
-    i = cuda.grid(1)
-    if i < num_bins:
-        particle_bin_counts[i] = 0
-    cuda.syncthreads()
-    if i < num_particles:
-        particle_bins[i] = (pos_x[i] // bin_size_x) \
-              + num_bin_x * (pos_y[i] // bin_size_y)
-        bin_offsets[i] = cuda.atomic.add(particle_bin_counts, particle_bins[i], 1)
+    if bin_size_z != 0:
+        i = cuda.grid(1)
+        if i < num_bins:
+            particle_bin_counts[i] = 0
+        cuda.syncthreads()
+        if i < num_particles:
+            particle_bins[i] = (pos_x[i] // bin_size_x) \
+                  + num_bin_x * (pos_y[i] // bin_size_y) \
+                  + num_bin_x * num_bin_y * (pos_z[i] // bin_size_z)
+            bin_offsets[i] = cuda.atomic.add(particle_bin_counts, particle_bins[i], 1)
+    else:
+        i = cuda.grid(1)
+        if i < num_bins:
+            particle_bin_counts[i] = 0
+        cuda.syncthreads()
+        if i < num_particles:
+            particle_bins[i] = (pos_x[i] // bin_size_x) \
+                  + num_bin_x * (pos_y[i] // bin_size_y)
+            bin_offsets[i] = cuda.atomic.add(particle_bin_counts, particle_bins[i], 1)
 
 # Implementation of scan for a cumulative sum
 # Reference: https://www.eecs.umich.edu/courses/eecs570/hw/parprefix.pdf
@@ -77,7 +91,7 @@ def cumsum(values: np.ndarray, result: np.ndarray, d_max: int):
 
     if i < n:
         result[i] = values[i]
-    
+
     cuda.syncthreads()
 
     dp = 1
@@ -89,10 +103,10 @@ def cumsum(values: np.ndarray, result: np.ndarray, d_max: int):
             #result[j + dp1 - 1] = result[j + dp - 1] + result[j + dp1 - 1]
             cuda.atomic.add(result, j + dp1 - 1, result[j + dp - 1])
         dp <<= 1
-        
+
         cuda.syncthreads()
-    
-    
+
+
     cuda.syncthreads()
     if i == 0:
         result[n - 1] = 0
@@ -101,14 +115,14 @@ def cumsum(values: np.ndarray, result: np.ndarray, d_max: int):
     for _ in range(d_max):
         dp1 = dp
         dp >>= 1
-        
+
         j = i * dp1
         if (j + dp1 - 1) < n:
             '''t = result[j + dp - 1]
             result[j + dp - 1] = result[j + dp1 - 1]
             result[j + dp1 - 1] = t + result[j + dp1 - 1]'''
             result[j + dp - 1] = cuda.atomic.add(result, j + dp1 - 1, result[j + dp - 1])
-        
+
         cuda.syncthreads()
 
 # Reorders the particles for usage
@@ -128,7 +142,7 @@ def set_indices(
 # Called once duing initialization to store which bins are neighbours.
 ## Stores only half the neighbours for double speed
 @njit
-def set_bin_neighbours(num_bin_x: int, num_bin_y: int, bin_neighbours: np.ndarray):
+def set_bin_neighbours(num_bin_x: int, num_bin_y: int, num_bin_z: int, bin_neighbours: np.ndarray):
     for i in range(num_bin_x):
         ip1 = i + 1
         im1 = i - 1
@@ -143,21 +157,49 @@ def set_bin_neighbours(num_bin_x: int, num_bin_y: int, bin_neighbours: np.ndarra
                 jm1 = num_bin_y - 1
             elif j == num_bin_y - 1:
                 jp1 = 0
-            bin_neighbours[i + j * num_bin_x, 0] = i + j * num_bin_x
-            bin_neighbours[i + j * num_bin_x, 1] = ip1 + j * num_bin_x
-            bin_neighbours[i + j * num_bin_x, 2] = im1 + jp1 * num_bin_x
-            bin_neighbours[i + j * num_bin_x, 3] = i + jp1 * num_bin_x
-            bin_neighbours[i + j * num_bin_x, 4] = ip1 + jp1 * num_bin_x
+
+            if num_bin_z == 0:
+                bin_neighbours[i + j * num_bin_x, 0] = i + j * num_bin_x
+                bin_neighbours[i + j * num_bin_x, 1] = ip1 + j * num_bin_x
+                bin_neighbours[i + j * num_bin_x, 2] = im1 + jp1 * num_bin_x
+                bin_neighbours[i + j * num_bin_x, 3] = i + jp1 * num_bin_x
+                bin_neighbours[i + j * num_bin_x, 4] = ip1 + jp1 * num_bin_x
+            else:
+                for k in range(num_bin_z):
+                    kp1 = k + 1
+                    km1 = k - 1
+                    if k == 0:
+                        km1 = num_bin_z - 1
+                    elif k == num_bin_z - 1:
+                        kp1 = 0
+                    bin_neighbours[i + j * num_bin_x + k * num_bin_x * num_bin_y, 0] = i + j * num_bin_x + k * num_bin_x * num_bin_y
+                    bin_neighbours[i + j * num_bin_x + k * num_bin_x * num_bin_y, 1] = ip1 + j * num_bin_x + k * num_bin_x * num_bin_y
+                    bin_neighbours[i + j * num_bin_x + k * num_bin_x * num_bin_y, 2] = im1 + jp1 * num_bin_x + k * num_bin_x * num_bin_y
+                    bin_neighbours[i + j * num_bin_x + k * num_bin_x * num_bin_y, 3] = i + jp1 * num_bin_x + k * num_bin_x * num_bin_y
+                    bin_neighbours[i + j * num_bin_x + k * num_bin_x * num_bin_y, 4] = ip1 + jp1 * num_bin_x + k * num_bin_x * num_bin_y
+
+                    bin_neighbours[i + j * num_bin_x + k * num_bin_x * num_bin_y, 5] = ip1 + j * num_bin_x + kp1 * num_bin_x * num_bin_y
+                    bin_neighbours[i + j * num_bin_x + k * num_bin_x * num_bin_y, 6] = im1 + j * num_bin_x + kp1 * num_bin_x * num_bin_y
+                    bin_neighbours[i + j * num_bin_x + k * num_bin_x * num_bin_y, 7] = i + jp1 * num_bin_x + kp1 * num_bin_x * num_bin_y
+                    bin_neighbours[i + j * num_bin_x + k * num_bin_x * num_bin_y, 8] = i + jm1 * num_bin_x + kp1 * num_bin_x * num_bin_y
+                    bin_neighbours[i + j * num_bin_x + k * num_bin_x * num_bin_y, 9] = ip1 + jp1 * num_bin_x + kp1 * num_bin_x * num_bin_y
+                    bin_neighbours[i + j * num_bin_x + k * num_bin_x * num_bin_y, 10] = ip1 + jm1 * num_bin_x + kp1 * num_bin_x * num_bin_y
+                    bin_neighbours[i + j * num_bin_x + k * num_bin_x * num_bin_y, 11] = im1 + jp1 * num_bin_x + kp1 * num_bin_x * num_bin_y
+                    bin_neighbours[i + j * num_bin_x + k * num_bin_x * num_bin_y, 12] = im1 + jm1 * num_bin_x + kp1 * num_bin_x * num_bin_y
+                    bin_neighbours[i + j * num_bin_x + k * num_bin_x * num_bin_y, 13] = i + j * num_bin_x + kp1 * num_bin_x * num_bin_y
 
 # 2D implementation
 @cuda.jit
 def accelerator(
         pos_x: np.ndarray,
         pos_y: np.ndarray,
+        pos_z: np.ndarray,
         vel_x: np.ndarray,
         vel_y: np.ndarray,
+        vel_z: np.ndarray,
         limitx: float,
         limity: float,
+        limitz: float,
         r_max :float, # max distance at which particles interact
         num_particles: int,
         parameter_matrix: np.ndarray,
@@ -165,6 +207,7 @@ def accelerator(
 
         acc_x: np.ndarray,
         acc_y: np.ndarray,
+        acc_z: np.ndarray,
 
         bin_neighbours: np.ndarray,
         particle_bins: np.ndarray,
@@ -177,18 +220,23 @@ def accelerator(
     if i < num_particles:
         acc_x[i] = 0
         acc_y[i] = 0
-    
+        acc_z[i] = 0
+
     cuda.syncthreads()
+    if limitz == 0:
+        num_neighbours = 5
+    else:
+        num_neighbours = 14
 
     if i < num_particles:
-        for b in range(5):
+        for b in range(num_neighbours):
             bin2 = bin_neighbours[particle_bins[i], b]
             for p in range(bin_counts[bin2]):
                 j = particle_indices[bin_starts[bin2] + p] # The second particle
                 if i != j:
                     pos_x_2 = pos_x[j]
                     pos_y_2 = pos_y[j]
-
+                    pos_z_2 = pos_z[j]
                     # Implements periodic BC
                     # assumes r_max < min(limits) / 3
                     if pos_x[i] < r_max and pos_x_2 > limitx - r_max:
@@ -199,17 +247,24 @@ def accelerator(
                         pos_y_2 -= limity
                     elif pos_y_2 < r_max and pos_y[i] > limity - r_max:
                         pos_y_2 += limity
+                    if pos_z[i] < r_max and pos_z_2 > limitz - r_max:
+                        pos_z_2 -= limitz
+                    elif pos_z_2 < r_max and pos_z[i] > limitz - r_max:
+                        pos_z_2 += limitz
 
-                    dist = (pos_x[i] - pos_x_2) * (pos_x[i] - pos_x_2) + (pos_y[i] - pos_y_2) * (pos_y[i] - pos_y_2)
+                    dist = (pos_x[i] - pos_x_2) * (pos_x[i] - pos_x_2) + (pos_y[i] - pos_y_2) * (pos_y[i] - pos_y_2) \
+                           + (pos_z[i] - pos_z_2)*(pos_z[i] - pos_z_2)
+
                     if ((1e-10 < dist) and (dist < r_max * r_max + 10000000)) or True:
                         dist = dist ** 0.5
                         acc1 = _cuda_general_force_function(
                             parameter_matrix[-1, particle_type_index_array[i], particle_type_index_array[j]],
                             dist, parameter_matrix[:, particle_type_index_array[i], particle_type_index_array[j]]
                         )
-                        
+
                         cuda.atomic.add(acc_x, i, -acc1 * (pos_x[i] - pos_x_2) / dist)
                         cuda.atomic.add(acc_y, i, -acc1 * (pos_y[i] - pos_y_2) / dist)
+                        cuda.atomic.add(acc_z, i, -acc1 * (pos_z[i] - pos_z_2) / dist)
                         #cuda.atomic.add(acc_x, i, 1)
                         #cuda.atomic.add(acc_y, i, 1)
 
@@ -221,6 +276,7 @@ def accelerator(
 
                             cuda.atomic.add(acc_x, j, acc2 * (pos_x[i] - pos_x_2) / dist)
                             cuda.atomic.add(acc_y, j, acc2 * (pos_y[i] - pos_y_2) / dist)
+                            cuda.atomic.add(acc_z, j, acc2 * (pos_z[i] - pos_z_2) / dist)
                             #cuda.atomic.add(acc_x, j, 1)
                             #cuda.atomic.add(acc_y, j, 1)
 
@@ -260,9 +316,9 @@ if __name__ == "__main__":
     # Always attract self
     for i in range(parameter_matrix[0,:,0].size):
         parameter_matrix[3, i, i] = abs(parameter_matrix[3, i, i])
-    
+
     r_max = np.max(parameter_matrix[1, :, :])
-    
+
 
     threads = 64
     blocks = int(np.ceil(num_particles/threads))
@@ -273,8 +329,8 @@ if __name__ == "__main__":
     bin_size_y = limits[0] / num_bin_y
 
     bin_neighbours = np.zeros((num_bin_x * num_bin_y, 5), dtype=np.int32)
-    set_bin_neighbours(num_bin_x, num_bin_y, bin_neighbours)
-    
+    set_bin_neighbours(num_bin_x, num_bin_y, None, bin_neighbours)
+
 
     i = 1
     while i < num_bin_x * num_bin_y:
@@ -282,13 +338,13 @@ if __name__ == "__main__":
 
     particle_bin_counts = np.zeros(i, dtype=np.int32)
     numbins = particle_bin_counts.size
-    
+
 
     particle_bin_starts = np.zeros_like(particle_bin_counts, dtype=np.int32)
     particle_bins = np.zeros_like(pos_x, dtype=np.int32)
     particle_indices = np.zeros_like(pos_x, dtype=np.int32)
     bin_offsets = np.zeros_like(pos_x, dtype=np.int32)
-    
+
     pos_xd = cuda.to_device(pos_x)
     pos_yd = cuda.to_device(pos_y)
     vel_xd = cuda.to_device(vel_x)
@@ -310,7 +366,7 @@ if __name__ == "__main__":
                                     particle_binsd, particle_bin_countsd, bin_offsetsd, numbins)
 
     cumsum[blocks, threads](particle_bin_countsd, particle_bin_startsd, int(np.log2(numbins)))
-        
+
     set_indices[blocks, threads](particle_binsd, particle_bin_startsd, bin_offsetsd, particle_indicesd, num_particles)
 
     accelerator[blocks, threads](pos_xd, pos_yd, vel_xd, vel_yd, limitsd, r_max, num_particles, parameter_matrixd, particle_tiad,
@@ -322,7 +378,7 @@ if __name__ == "__main__":
         accelerator[blocks, threads](pos_xd, pos_yd, vel_xd, vel_yd, limitsd, r_max, num_particles, parameter_matrixd, particle_tiad,
                                     acc_xd, acc_yd, bin_neighboursd, particle_binsd, bin_offsetsd,
                                     particle_indicesd, particle_bin_startsd, particle_bin_countsd)
-        
+
         '''acc_xd.copy_to_host(acc_x)
         acc_yd.copy_to_host(acc_y)
         print(acc_x[:10])
