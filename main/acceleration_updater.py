@@ -21,7 +21,7 @@ def clusters(dist: float, args: np.ndarray):
 # This implements only separation
 @cuda.jit(device=True)
 def boids(dist: float, del_x: float, del_y: float, args: np.ndarray):
-    if dist < args[0] / 4:
+    if dist < args[0] / 8:
         return (
             -(args[1] * del_x / dist),
             -(args[1] * del_y / dist)
@@ -186,7 +186,7 @@ def accelerator(
         
         p1 = particle_type_index_array[i]
 
-        '''d = 10
+        d = 10
         pf = 30
         if pos_x[i] < d:
             cuda.atomic.add(acc_x, i, pf)
@@ -195,7 +195,7 @@ def accelerator(
         if pos_y[i] < d:
             cuda.atomic.add(acc_y, i, pf)
         elif pos_y[i] > limity - d:
-            cuda.atomic.add(acc_y, i, -pf)'''
+            cuda.atomic.add(acc_y, i, -pf)
 
         for b in range(5):
             bin2 = bin_neighbours[particle_bins[i], b]

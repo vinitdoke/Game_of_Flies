@@ -80,6 +80,9 @@ class Simulation:
         self.parameter_matrix[3, :, :] += 0.1'''
 
         self.parameter_matrix[-1, :, :] = np.round(np.random.random((self.num_types, self.num_types)))
+        self.parameter_matrix[-1, :, :] = 1
+        #self.parameter_matrix[-1, :, :] = np.array([[i==j for i in range(self.num_types)] for j in range(self.num_types)])
+        self.parameter_matrix[-1, :, :] = 1
         for i in range(self.num_types):
             for j in range(self.num_types):
                 if i > j:
@@ -93,13 +96,13 @@ class Simulation:
         self.parameter_matrix[0][boid] += 8
 
         self.parameter_matrix[1][boid] *= 4
-        self.parameter_matrix[1][boid] += 6
+        self.parameter_matrix[1][boid] += 2
 
         self.parameter_matrix[2][boid] *= 2
-        self.parameter_matrix[2][boid] += 2
+        self.parameter_matrix[2][boid] += 4
 
-        self.parameter_matrix[3][boid] *= 0.05
-        self.parameter_matrix[3][boid] += 0.1
+        self.parameter_matrix[3][boid] *= 0.1
+        self.parameter_matrix[3][boid] -= 0.05
 
         
         self.parameter_matrix[0][clus] *= 3
@@ -184,7 +187,7 @@ class Simulation:
                 self.num_types, self.d_boid_acc_x, self.d_boid_acc_y, self.d_boid_vel_x, self.d_boid_vel_y, self.d_boid_counts,
                 self.d_sq_speed, self.d_bin_neighbours, self.d_particle_bins, self.d_bin_offsets,
                 self.d_particle_indices, self.d_particle_bin_starts, self.d_particle_bin_counts,
-                self.blocks, self.threads, timestep = None
+                self.blocks, self.threads, timestep = 0.01
         )
         '''self.d_acc_x.copy_to_host(self.acc_x)
         self.d_acc_y.copy_to_host(self.acc_y)
