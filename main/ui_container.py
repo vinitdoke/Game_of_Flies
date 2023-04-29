@@ -38,28 +38,63 @@ class ControlsWidget(QtWidgets.QWidget):
         # Start/Stop Button
         self._start_stop_button = QtWidgets.QPushButton('Start')
         self._start_stop_button.clicked.connect(self._start_stop)
-        layout.addWidget(self._start_stop_button)
 
         # Profile Selector:
         self._select_profile = QtWidgets.QComboBox()
-        self._select_profile.addItems(['Clusters', 'Boids', 'More'])
-        layout.addWidget(self._select_profile)
+        self._select_profile.addItems(['Clusters + Boids'])
+
+        # Seed input 
+        self._seed_label = QtWidgets.QLabel('Seed: ')
+        self._seed_label.setAlignment(QtCore.Qt.AlignLeft)
+        # self._seed_label.setStyleSheet('font-size: 20px; font-weight: bold')
+        self._seed_input = QtWidgets.QLineEdit()
+        self._seed_input.setPlaceholderText('Seed')
+        self._seed_input.setValidator(QtGui.QIntValidator())
+
+
+        # Number of flies input
+        self._num_flies_label = QtWidgets.QLabel('Number of Flies:')
+        self._num_flies_label.setAlignment(QtCore.Qt.AlignLeft)
+        # self._num_flies_label.setStyleSheet('font-size: 20px; font-weight: bold')
+        self._num_flies_input = QtWidgets.QLineEdit()
+        self._num_flies_input.setPlaceholderText('num_particles')
+        self._num_flies_input.setValidator(QtGui.QIntValidator())
+        # self._num_flies_input.textChanged.connect(self._canvas.update_num_flies)
+
+
+        # Clusters to Boid Ratio Slider
+        self._cluster_boid_ratio_label = QtWidgets.QLabel('Cluster to Boid Ratio:')
+        self._cluster_boid_ratio_label.setAlignment(QtCore.Qt.AlignLeft)
+        # self._cluster_boid_ratio_label.setStyleSheet('font-size: 20px; font-weight: bold')
+        self._cluster_boid_ratio_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        self._cluster_boid_ratio_slider.setMinimum(0)
+        self._cluster_boid_ratio_slider.setMaximum(20)
+        self._cluster_boid_ratio_slider.setValue(0)
+        self._cluster_boid_ratio_slider.setTickPosition(QtWidgets.QSlider.TicksBelow)
+        self._cluster_boid_ratio_slider.setTickInterval(5)
+        self._cluster_boid_ratio_slider.setSingleStep(5)
+        # self._cluster_boid_ratio_slider.valueChanged.connect(self._canvas.update_cluster_boid_ratio)
+        
 
         # FPS Indicator:
         self._fps_label = QtWidgets.QLabel('FPS: 0')
         self._fps_label.setAlignment(QtCore.Qt.AlignCenter)
         self._fps_label.setStyleSheet('font-size: 20px; font-weight: bold')
-        layout.addWidget(self._fps_label)
         self._canvas.timer.connect(self._update_fps)
 
-        # Parameters:
 
-        # STATS
-        # SEED
-        # self._seed_label = QtWidgets.QLabel('Seed:')
-        # self._seed_label.setAlignment(QtCore.Qt.AlignCenter)
-        # self._seed_label.setStyleSheet('font-size: 20px; font-weight: bold')
-        # layout.addWidget(self._seed_label)
+        layout.addWidget(self._start_stop_button)
+        layout.addWidget(self._select_profile)
+        layout.addWidget(self._seed_label)
+        layout.addWidget(self._seed_input)
+        layout.addWidget(self._num_flies_label)
+        layout.addWidget(self._num_flies_input)
+        layout.addWidget(self._cluster_boid_ratio_label)
+        layout.addWidget(self._cluster_boid_ratio_slider)
+        layout.addStretch(1)
+        layout.addWidget(self._fps_label)
+        layout.setSpacing(10)
+        layout.setContentsMargins(10, 10, 10, 100)
 
         self.setLayout(layout)
 
@@ -77,7 +112,7 @@ class ControlsWidget(QtWidgets.QWidget):
 
 
 if __name__ == "__main__":
-    simulation = Simulation([100] * 9, seed=1234, limits=(100, 100, 0))
+    simulation = Simulation([100] * 2, seed=1234, limits=(100, 100, 100))
     simulation.update()  # dummy call to avoid frame freeze on first update
 
     visual = Visualiser()

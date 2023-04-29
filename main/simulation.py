@@ -33,7 +33,7 @@ class Simulation:
         self.r_max = self.init["max_rmax"]
         self.sq_speed = np.zeros_like(self.vel_x)
 
-        self.parameter_matrix[-1, :, :] = 1
+        self.parameter_matrix[-1, :, :] = 0
 
         # For clusters
         # r_min, r_max, f_min, f_max
