@@ -31,6 +31,9 @@ class ControlsWidget(QtWidgets.QWidget):
     def __init__(self, parent=None, _canvas=None):
         super().__init__(parent)
 
+        self.interaction_i = 0
+        self.interaction_j = 0
+
         self._canvas = _canvas
         layout = QtWidgets.QVBoxLayout()
 
@@ -95,10 +98,41 @@ class ControlsWidget(QtWidgets.QWidget):
         self._interaction_matrix_label.setAlignment(QtCore.Qt.AlignLeft)
         # self._interaction_matrix_label.setStyleSheet('font-size: 20px; font-weight: bold')
 
+        # Interaction Matrix Display
+        # grid of colored square buttons
+        self._interaction_matrix = QtWidgets.QGridLayout()
+        self._interaction_matrix.setSpacing(5)
+        self._interaction_matrix_buttons = []
+        for i in range(5):
+            for j in range(5):
+                button = QtWidgets.QPushButton()
+                button.setFixedSize(30, 30)
+                button.setStyleSheet("background-color: rgb(0, 0, 0);")
+                # button.clicked.connect(self._canvas.update_interaction_matrix)
+                self._interaction_matrix.addWidget(button, i, j)
+                self._interaction_matrix_buttons.append(button)
+        
+        # 4 Params:
+        self._params_label = QtWidgets.QLabel(f"Parameters: {self.interaction_i}, {self.interaction_j}")
+        self._params_label.setAlignment(QtCore.Qt.AlignLeft)
+        # self._params_label.setStyleSheet('font-size: 20px; font-weight: bold')
 
+        # 4 Params Display
+        # 4 text fields vertical
+        self._params = QtWidgets.QVBoxLayout()
+        self._params.setSpacing(5)
+        self._params_inputs = []
+        for i in range(4):
+            input = QtWidgets.QLineEdit()
+            input.setPlaceholderText("param" + str(i))
+            input.setValidator(QtGui.QDoubleValidator())
+            # input.textChanged.connect(self._canvas.update_params)
+            self._params.addWidget(input)
+            self._params_inputs.append(input)
 
-
-
+        # Update Button:
+        self._update_button = QtWidgets.QPushButton("Update")
+        # self._update_button.clicked.connect(self._canvas.update_params)
 
         # FPS Indicator:
         self._fps_label = QtWidgets.QLabel("FPS: 0")
@@ -119,6 +153,11 @@ class ControlsWidget(QtWidgets.QWidget):
         layout.addWidget(self._boid_types_label)
         layout.addWidget(self._boid_types_input)
         layout.addWidget(self._interaction_matrix_label)
+        # layout.addWidget(self._interaction_matrix)
+        layout.addLayout(self._interaction_matrix)
+        layout.addWidget(self._params_label)
+        layout.addLayout(self._params)
+        layout.addWidget(self._update_button)
         layout.addStretch(1)
         layout.addWidget(self._fps_label)
         layout.setSpacing(15)
@@ -148,6 +187,9 @@ class ControlsWidget(QtWidgets.QWidget):
         pass
 
     def _update_profile(self, event):
+        pass
+
+    def _redraw_interaction_matrix(self, event):
         pass
 
 
