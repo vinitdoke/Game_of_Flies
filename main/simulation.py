@@ -98,11 +98,16 @@ class Simulation:
         self.parameter_matrix[1][boid] *= 4
         self.parameter_matrix[1][boid] += 2
 
-        self.parameter_matrix[2][boid] *= 2
-        self.parameter_matrix[2][boid] += 4
-
-        self.parameter_matrix[3][boid] *= 0.1
-        self.parameter_matrix[3][boid] -= 0.05
+        self.parameter_matrix[2][boid] *= -2
+        self.parameter_matrix[2][boid] -= 2
+        f = 7
+        self.parameter_matrix[3][boid] *= -0.1
+        self.parameter_matrix[3][boid] -= 0.1
+        self.parameter_matrix[3][boid] *= f
+        for i in range(self.parameter_matrix[0,:,0].size):
+            if self.parameter_matrix[-1, i, i] == 1:
+                self.parameter_matrix[3, i, i] = abs(self.parameter_matrix[3, i, i]) / f
+                self.parameter_matrix[2, i, i] = abs(self.parameter_matrix[2, i, i])
 
         
         self.parameter_matrix[0][clus] *= 3

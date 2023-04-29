@@ -65,7 +65,7 @@ def initialise(
     # zero_arr = np.zeros(total_len)
 
     for i in range(dim):
-        pos[i, :total_given_part] = limits[i] * rand_data[i][:total_given_part]
+        pos[i, :total_given_part] = (limits[i]) * rand_data[i][:total_given_part]
         vel[i, :total_given_part] = np.zeros(total_given_part)
         acc[i, :total_given_part] = np.zeros(total_given_part)
 
