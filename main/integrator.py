@@ -5,7 +5,7 @@ import time
 from state_parameters import initialise
 
 
-fac = 0.9
+fac = 1.0
 
 
 # Implementation of reduction for max function
@@ -64,9 +64,9 @@ def step2(
         vel_y[i] += acc_y[i] * 0.5 * timestep
         vel_z[i] += acc_z[i] * 0.5 * timestep
 
-        vel_x[i] *= 0.9
-        vel_y[i] *= 0.9
-        vel_z[i] *= 0.9
+        vel_x[i] *= fac
+        vel_y[i] *= fac
+        vel_z[i] *= fac
 
 
 @cuda.jit

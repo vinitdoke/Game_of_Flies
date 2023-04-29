@@ -33,17 +33,37 @@ class Simulation:
         self.r_max = self.init["max_rmax"]
         self.sq_speed = np.zeros_like(self.vel_x)
 
-        self.parameter_matrix[0, :, :] *= 3
-        self.parameter_matrix[0, :, :] += 5
+        self.parameter_matrix[-1, :, :] = 1
 
-        self.parameter_matrix[1, :, :] *= 5
-        self.parameter_matrix[1, :, :] += 8
+        # For clusters
+        # r_min, r_max, f_min, f_max
+        if self.parameter_matrix[-1, 0, 0] == 0:
+            self.parameter_matrix[0, :, :] *= 3
+            self.parameter_matrix[0, :, :] += 5
 
-        self.parameter_matrix[2, :, :] *= 3
-        self.parameter_matrix[2, :, :] -= 10
+            self.parameter_matrix[1, :, :] *= 5
+            self.parameter_matrix[1, :, :] += 8
 
-        self.parameter_matrix[3, :, :] *= 12
-        self.parameter_matrix[3, :, :] -= 6
+            self.parameter_matrix[2, :, :] *= 3
+            self.parameter_matrix[2, :, :] -= 10
+
+            self.parameter_matrix[3, :, :] *= 12
+            self.parameter_matrix[3, :, :] -= 6
+        else:
+            # For boids
+            # alignment, r_max, separation, cohesion
+            self.parameter_matrix[0, :, :] *= 0
+            self.parameter_matrix[0, :, :] += 0.1
+
+            self.parameter_matrix[1, :, :] *= 9
+            self.parameter_matrix[1, :, :] += 12
+
+            self.parameter_matrix[2, :, :] *= 0.01
+            self.parameter_matrix[2, :, :] -= 15
+
+            self.parameter_matrix[3, :, :] *= 12
+            self.parameter_matrix[3, :, :] -= 6
+
 
         # Always attract self
         for i in range(self.parameter_matrix[0, :, 0].size):
@@ -63,8 +83,10 @@ class Simulation:
             self.bin_size_z = self.limits[2] / self.num_bin_z
         else:
             self.bin_size_z = 0
+            self.num_bin_z = 0
 
         if self.limits[2] == 0:
+            self.num_bin_z = 0
             self.bin_neighbours = np.zeros((self.num_bin_x * self.num_bin_y, 5), dtype=np.int32)
             set_bin_neighbours(self.num_bin_x, self.num_bin_y, self.num_bin_z, self.bin_neighbours)
             i = 1
@@ -121,35 +143,38 @@ class Simulation:
                 self.d_parameter_matrix, self.d_particle_tia, self.d_acc_x, self.d_acc_y, self.d_acc_z, self.d_sq_speed,
                 self.d_bin_neighbours, self.d_particle_bins, self.d_bin_offsets, self.d_particle_indices,
                 self.d_particle_bin_starts, self.d_particle_bin_counts,
-                self.blocks, self.threads, timestep = None
+                self.blocks, self.threads, timestep = 0.002
         )
-        '''self.d_acc_x.copy_to_host(self.acc_x)
+        self.d_acc_x.copy_to_host(self.acc_x)
         self.d_acc_y.copy_to_host(self.acc_y)
+        self.d_acc_z.copy_to_host(self.acc_z)
         self.d_particle_bins.copy_to_host(self.particle_bins)
         self.d_particle_bin_counts.copy_to_host(self.particle_bin_counts)
         self.d_particle_bin_starts.copy_to_host(self.particle_bin_starts)
-        self.d_particle_indices.copy_to_host(self.particle_indices)'''
+        self.d_particle_indices.copy_to_host(self.particle_indices)
 
         # For debugging, do not remove:
-        '''start_test = np.cumsum(self.particle_bin_counts)
-        print(np.allclose(start_test[:-1], self.particle_bin_starts[1:]))
-        i = 0
+        start_test = np.cumsum(self.particle_bin_counts)
+        cc = np.allclose(start_test[:-1], self.particle_bin_starts[1:])
+        if not cc:
+            print("CUMCUSM ERROORROOR")
+        '''i = 0
         while start_test[i] == self.particle_bin_starts[i+1]:
             i += 1
-        print(f"i:{i} len:{len(self.particle_bin_starts)}")
-        print(self.particle_bin_counts)
+        print(f"i:{i} len:{len(self.particle_bin_starts)}")'''
+        #print(self.particle_bin_counts)
         #print(start_test)
-        print(self.particle_bin_starts)'''
-
-        '''print("\n\n\n__________________________________________")
-        for tb in range(5):
-            print(f"START--  {tb}")
+        #print(self.particle_bin_starts)
+        cr = False
+        #print("\n\n\n__________________________________________")
+        for tb in range(self.num_particles*0):
+            #print(f"START--  {tb}")
             bin = self.particle_bins[tb]
-            print(f"acc x: {self.acc_x[tb]}")
-            print(f"acc y: {self.acc_y[tb]}")
+            #print(f"acc x: {self.acc_x[tb]}")
+            #print(f"acc y: {self.acc_y[tb]}")
             #print(self.particle_bin_counts)
-            print(f"bin number: {bin}")
-            print(self.particle_indices[self.particle_bin_starts[bin]:self.particle_bin_starts[bin]+self.particle_bin_counts[bin]])
+            #print(f"bin number: {bin}")
+            #print(self.particle_indices[self.particle_bin_starts[bin]:self.particle_bin_starts[bin]+self.particle_bin_counts[bin]])
             a = self.bin_neighbours[self.particle_bins[tb], :]
             a2 = np.empty_like(self.bin_neighbours)
             c = 0
@@ -158,14 +183,21 @@ class Simulation:
                     a2[c] = self.bin_neighbours[i, :]
                     c += 1
             
-            print(f"self neighbours: {a}")
-            print(f"other neighbours:  {a2[:c]}")
+            #print(f"self neighbours: {a}")
+            #print(f"other neighbours:  {a2[:c]}")
             
             b = self.particle_bin_counts[a]
             b2 = self.particle_bin_counts[a2[:c, 0]]
-            print(f"b:  {b}   sum b:  {np.sum(b)}")
-            print(f"b2:  {b2} sum b2:  {np.sum(b2) - self.particle_bin_counts[self.particle_bins[tb]]}")
-            print("END--\n\n")'''
+            #print(f"b:  {b}   sum b:  {np.sum(b)}")
+            #print(f"b2:  {b2} sum b2:  {np.sum(b2) - self.particle_bin_counts[self.particle_bins[tb]]}")
+            #print("END--\n\n")
+            s = np.sum(b) + np.sum(b2) - self.particle_bin_counts[bin]
+            if self.acc_z[tb] + 1 != s:
+                print(f"ERRRROROR: {tb}    acc = {self.acc_z[tb]}   sums = {s}")
+                cr = True
+        if cr:
+            print("ERRRORORORO")        
+        
 
     def update(self):
         self.core_step()

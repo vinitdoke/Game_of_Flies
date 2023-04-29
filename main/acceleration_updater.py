@@ -5,42 +5,30 @@ from force_profiles import general_force_function
 from numba import cuda, njit
 from state_parameters import initialise
 
+# r_min, r_max, f_min, f_max
 @cuda.jit(device = True)
-def _cuda_general_force_function(profile_type: int, input_vect: float, args: np.ndarray):
-    """
-    :param profile_type: int
-    :   1 : clusters_distance_input
-    :   2 : clusters_position_input
-    :param input_vect: list
-    :   1 : [dist]
-    :param args: r_min, r_max, f_min, f_max
-    :return: force value
-    """
+def clusters_force(dist: float, args: np.ndarray):
+    if dist < 0 or dist > args[1]:
+        return 0
+    elif dist < args[0]:
+        return -args[2] / args[0] * dist + args[2]
+    elif dist < (args[0] + args[1]) / 2:
+        return 2 * args[3] / (args[1] - args[0]) * (dist -
+                                                    args[0])
+    else:
+        return 2 * args[3] / (args[1] - args[0]) * (args[1] -
+                                                    dist)
 
-    if profile_type == 0:
-        # if 0 <= input_vect < args[0]:
-        #     return -args[2] / args[0] * input_vect + args[2]
-        # elif args[0] <= input_vect < (args[0] + args[1]) / 2:
-        #     return 2 * args[3] / (args[1] - args[0]) * (input_vect -
-        #                                                 args[0])
-        # elif (args[0] + args[1]) / 2 <= input_vect < args[1]:
-        #     return 2 * args[3] / (args[1] - args[0]) * (args[1] -
-        #                                                 input_vect)
-        # else:
-        #     return 0
-
-        if input_vect < 0 or input_vect > args[1]:
-            return 0
-        elif input_vect < args[0]:
-            return -args[2] / args[0] * input_vect + args[2]
-        elif input_vect < (args[0] + args[1]) / 2:
-            return 2 * args[3] / (args[1] - args[0]) * (input_vect -
-                                                        args[0])
-        else:
-            return 2 * args[3] / (args[1] - args[0]) * (args[1] -
-                                                        input_vect)
-    elif profile_type == 1:
-        raise NotImplementedError("Position Input not implemented yet")
+# alignment, r_max, separation, cohesion
+@cuda.jit(device = True)
+def boids_force(dist: float, del_vx, del_vy, del_vz, del_x, del_y, del_z, args):
+    tmp = args[3]
+    d = dist
+    if dist < args[1] / 3:
+        tmp = args[2]
+    return (del_x * tmp / dist + args[0] * del_vx / d,
+           del_y * tmp / dist + args[0] * del_vy / d,
+           del_z * tmp / dist + args[0] * del_vz / d)
 
 
 # Assigns bins to particles and set their offset within it.
@@ -62,7 +50,7 @@ def bin_particles(
     bin_offsets: np.ndarray,
     num_bins: int
 ):
-    if bin_size_z != 0:
+    if bin_size_z > 1:
         i = cuda.grid(1)
         if i < num_bins:
             particle_bin_counts[i] = 0
@@ -157,8 +145,8 @@ def set_bin_neighbours(num_bin_x: int, num_bin_y: int, num_bin_z: int, bin_neigh
                 jm1 = num_bin_y - 1
             elif j == num_bin_y - 1:
                 jp1 = 0
-
-            if num_bin_z == 0:
+            
+            if num_bin_z < 1:
                 bin_neighbours[i + j * num_bin_x, 0] = i + j * num_bin_x
                 bin_neighbours[i + j * num_bin_x, 1] = ip1 + j * num_bin_x
                 bin_neighbours[i + j * num_bin_x, 2] = im1 + jp1 * num_bin_x
@@ -229,11 +217,13 @@ def accelerator(
         num_neighbours = 14
 
     if i < num_particles:
+        t1 = particle_type_index_array[i]
         for b in range(num_neighbours):
             bin2 = bin_neighbours[particle_bins[i], b]
             for p in range(bin_counts[bin2]):
                 j = particle_indices[bin_starts[bin2] + p] # The second particle
                 if i != j:
+                    t2 = particle_type_index_array[j]
                     pos_x_2 = pos_x[j]
                     pos_y_2 = pos_y[j]
                     pos_z_2 = pos_z[j]
@@ -257,28 +247,41 @@ def accelerator(
 
                     if ((1e-10 < dist) and (dist < r_max * r_max + 10000000)) or True:
                         dist = dist ** 0.5
-                        acc1 = _cuda_general_force_function(
-                            parameter_matrix[-1, particle_type_index_array[i], particle_type_index_array[j]],
-                            dist, parameter_matrix[:, particle_type_index_array[i], particle_type_index_array[j]]
-                        )
+                        if parameter_matrix[-1, t1, t2] == 0:
+                            acc1 = clusters_force(dist, parameter_matrix[:, t1, t2])
+                            cuda.atomic.add(acc_x, i, -acc1 * (pos_x[i] - pos_x_2) / dist)
+                            cuda.atomic.add(acc_y, i, -acc1 * (pos_y[i] - pos_y_2) / dist)
+                            #cuda.atomic.add(acc_z, i, -acc1 * (pos_z[i] - pos_z_2) / dist)
+                        elif parameter_matrix[-1, t1, t2] == 1:
+                            acc1 = boids_force(dist, vel_x[j] - vel_x[i], vel_y[j] - vel_y[i], vel_z[j] - vel_z[i],
+                                               pos_x_2 - pos_x[i], pos_y_2 - pos_y[i], pos_z_2 - pos_z[i],
+                                               parameter_matrix[:, t1, t2])
+                            cuda.atomic.add(acc_x, i, acc1[0])
+                            cuda.atomic.add(acc_y, i, acc1[1])
+                            #cuda.atomic.add(acc_z, i, acc1[2])
 
-                        cuda.atomic.add(acc_x, i, -acc1 * (pos_x[i] - pos_x_2) / dist)
-                        cuda.atomic.add(acc_y, i, -acc1 * (pos_y[i] - pos_y_2) / dist)
-                        cuda.atomic.add(acc_z, i, -acc1 * (pos_z[i] - pos_z_2) / dist)
                         #cuda.atomic.add(acc_x, i, 1)
                         #cuda.atomic.add(acc_y, i, 1)
+                        cuda.atomic.add(acc_z, i, 1)
 
                         if bin2 != particle_bins[i]:
-                            acc2 = _cuda_general_force_function(
-                                parameter_matrix[-1, particle_type_index_array[j], particle_type_index_array[i]],
-                                dist, parameter_matrix[:, particle_type_index_array[j], particle_type_index_array[i]]
-                            )
+                            if parameter_matrix[-1, t2, t1] == 0:
+                                acc2 = clusters_force(dist, parameter_matrix[:, t2, t1])
+                                cuda.atomic.add(acc_x, j, acc2 * (pos_x[i] - pos_x_2) / dist)
+                                cuda.atomic.add(acc_y, j, acc2 * (pos_y[i] - pos_y_2) / dist)
+                                #cuda.atomic.add(acc_z, j, acc2 * (pos_z[i] - pos_z_2) / dist)
+                            elif parameter_matrix[-1, t2, t1] == 1:
+                                acc2 = boids_force(dist, vel_x[i] - vel_x[j], vel_y[i] - vel_y[j], vel_z[i] - vel_z[j],
+                                                   pos_x[i] - pos_x_2, pos_y[i] - pos_y_2, pos_z[i] - pos_z_2,
+                                                   parameter_matrix[:, t2, t1])
+                                cuda.atomic.add(acc_x, j, acc2[0])
+                                cuda.atomic.add(acc_y, j, acc2[1])
+                                #cuda.atomic.add(acc_z, j, acc2[2])
 
-                            cuda.atomic.add(acc_x, j, acc2 * (pos_x[i] - pos_x_2) / dist)
-                            cuda.atomic.add(acc_y, j, acc2 * (pos_y[i] - pos_y_2) / dist)
-                            cuda.atomic.add(acc_z, j, acc2 * (pos_z[i] - pos_z_2) / dist)
+
                             #cuda.atomic.add(acc_x, j, 1)
                             #cuda.atomic.add(acc_y, j, 1)
+                            cuda.atomic.add(acc_z, j, 1)
 
 
 if __name__ == "__main__":
