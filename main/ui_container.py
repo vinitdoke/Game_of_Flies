@@ -10,6 +10,7 @@ INIT_CONFIG = {
     "boundary": "100, 100, 100",
     "clusters": "200, 200, 200, 200",
     "boids":"0, 0",
+    "interactions": 4,
 }
 
 
@@ -117,15 +118,15 @@ class ControlsWidget(QtWidgets.QWidget):
         self._interaction_matrix = QtWidgets.QGridLayout()
         self._interaction_matrix.setSpacing(5)
         self._interaction_matrix_buttons = []
-        for i in range(5):
-            for j in range(5):
+        for i in range(INIT_CONFIG["interactions"]):
+            for j in range(INIT_CONFIG["interactions"]):
                 button = QtWidgets.QPushButton()
                 button.setFixedSize(30, 30)
                 button.setStyleSheet("background-color: rgb(0, 0, 0);")
-                # button.clicked.connect(self._canvas.update_interaction_matrix)
+                button.clicked.connect(lambda nill, i=i, j=j: self._update_specific_interaction(i, j))
                 self._interaction_matrix.addWidget(button, i, j)
-                self._interaction_matrix_buttons.append(button)
-        
+                self._interaction_matrix_buttons.append((button, i, j))
+
         # 4 Params:
         self._params_label = QtWidgets.QLabel(f"Parameters: {self.interaction_i}, {self.interaction_j}")
         self._params_label.setAlignment(QtCore.Qt.AlignLeft)
@@ -192,33 +193,33 @@ class ControlsWidget(QtWidgets.QWidget):
     def _update_fps(self, event):
         self._fps_label.setText(f"FPS: {self._canvas.canvas.fps:.2f}")
 
-    def _update_num_flies(self, event):
-        pass
+    def _redraw_interaction_matrix(self, n):
+        self._remove_interaction_matrix_buttons()
+        self._interaction_matrix_buttons = []
+        for i in range(n):
+            for j in range(n):
+                button = QtWidgets.QPushButton()
+                button.setFixedSize(30, 30)
+                button.setStyleSheet("background-color: rgb(0, 0, 0);")
+                button.clicked.connect(lambda nill, i=i, j=j: self._update_specific_interaction(i, j))
+                self._interaction_matrix.addWidget(button, i, j)
+                self._interaction_matrix_buttons.append(button)
 
-    def _update_cluster_boid_ratio(self, event):
-        pass
+    def _remove_interaction_matrix_buttons(self):
+        for i in reversed(range(self._interaction_matrix.count())): 
+            self._interaction_matrix.itemAt(i).widget().setParent(None)
 
-    def _update_seed(self, event):
-        pass
+    def _update_specific_interaction(self, i, j):
+        self._params_label.setText(f"Parameters: {i}, {j}")
+        self.interaction_i = i
+        self.interaction_j = j
 
-    def _update_profile(self, event):
-        pass
-
-    def _draw_interaction_matrix(self, event):
-        pass
 
     def _update_button_clicked(self, event):
         seed = int(self._seed_input.text())
         clusters = [int(i) for i in self._cluster_types_input.text().split(",")]
         # boids = [int(i) for i in self._boid_types_input.text().split(",")]
         limits = [int(i) for i in self._boundary_limits_input.text().split(",")]
-
-        # new_simulation = Simulation(
-        #     clusters,
-        #     boids,
-        #     seed=seed,
-        #     limits=limits,
-        # )
 
         print("Update Button Clicked")
         print("Seed:", seed)
@@ -227,6 +228,8 @@ class ControlsWidget(QtWidgets.QWidget):
         print("Limits:", limits)
 
         new_simulation = Simulation(clusters, limits = limits, seed=seed)
+        # new_simulation.update()
+        self._redraw_interaction_matrix(len(clusters))
         self._canvas.set_simulation_instance(new_simulation)
         self._canvas.draw_boundary()
 
