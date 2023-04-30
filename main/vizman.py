@@ -203,10 +203,3 @@ class Visualiser:
             self.timer.start()
         else:
             self.timer.start()
-
-
-# def dummy_output():
-#     # 2D output in 3D structure
-#     out = np.random.uniform(0, 100, (10000, 3))
-#     out[:, 2] = 0
-#     return out

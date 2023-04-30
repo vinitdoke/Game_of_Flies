@@ -118,7 +118,6 @@ class ControlsWidget(QtWidgets.QWidget):
         # self._params_label.setStyleSheet('font-size: 20px; font-weight: bold')
 
         # 4 Params Display
-        # 4 text fields vertical
         self._params = QtWidgets.QVBoxLayout()
         self._params.setSpacing(5)
         self._params_inputs = []
@@ -140,6 +139,7 @@ class ControlsWidget(QtWidgets.QWidget):
         self._fps_label.setStyleSheet("font-size: 20px; font-weight: bold")
         self._canvas.timer.connect(self._update_fps)
 
+        # Layout:
         layout.addWidget(self._start_stop_button)
         layout.addWidget(self._select_profile)
         layout.addWidget(self._seed_label)
@@ -153,7 +153,6 @@ class ControlsWidget(QtWidgets.QWidget):
         layout.addWidget(self._boid_types_label)
         layout.addWidget(self._boid_types_input)
         layout.addWidget(self._interaction_matrix_label)
-        # layout.addWidget(self._interaction_matrix)
         layout.addLayout(self._interaction_matrix)
         layout.addWidget(self._params_label)
         layout.addLayout(self._params)
@@ -161,7 +160,7 @@ class ControlsWidget(QtWidgets.QWidget):
         layout.addStretch(1)
         layout.addWidget(self._fps_label)
         layout.setSpacing(15)
-        layout.setContentsMargins(10, 10, 10, 100)
+        layout.setContentsMargins(10, 10, 10, 50)
 
         self.setLayout(layout)
 
