@@ -5,6 +5,12 @@ from vispy.app import use_app
 
 
 # CANVAS_SIZE = (800, 600)
+INIT_CONFIG = {
+    "seed": 434,
+    "boundary": "100, 100, 100",
+    "clusters": "200, 200, 200, 200",
+    "boids":"0, 0",
+}
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -50,38 +56,46 @@ class ControlsWidget(QtWidgets.QWidget):
         self._seed_label.setAlignment(QtCore.Qt.AlignLeft)
         # self._seed_label.setStyleSheet('font-size: 20px; font-weight: bold')
         self._seed_input = QtWidgets.QLineEdit()
-        self._seed_input.setPlaceholderText("Seed")
         self._seed_input.setValidator(QtGui.QIntValidator())
+        self._seed_input.setText(str(INIT_CONFIG["seed"]))
 
-        # Number of flies input
-        self._num_flies_label = QtWidgets.QLabel("Number of Flies:")
-        self._num_flies_label.setAlignment(QtCore.Qt.AlignLeft)
-        # self._num_flies_label.setStyleSheet('font-size: 20px; font-weight: bold')
-        self._num_flies_input = QtWidgets.QLineEdit()
-        self._num_flies_input.setPlaceholderText("num_particles")
-        self._num_flies_input.setValidator(QtGui.QIntValidator())
-        # self._num_flies_input.textChanged.connect(self._canvas.update_num_flies)
+        # # Number of flies input
+        # self._num_flies_label = QtWidgets.QLabel("Number of Flies:")
+        # self._num_flies_label.setAlignment(QtCore.Qt.AlignLeft)
+        # # self._num_flies_label.setStyleSheet('font-size: 20px; font-weight: bold')
+        # self._num_flies_input = QtWidgets.QLineEdit()
+        # self._num_flies_input.setText("100, 100, 100")
+        # self._num_flies_input.setValidator(QtGui.QIntValidator())
+        # # self._num_flies_input.textChanged.connect(self._canvas.update_num_flies)
 
-        # Clusters to Boid Ratio Slider
-        self._cluster_boid_ratio_label = QtWidgets.QLabel("Cluster to Boid Ratio:")
-        self._cluster_boid_ratio_label.setAlignment(QtCore.Qt.AlignLeft)
-        # self._cluster_boid_ratio_label.setStyleSheet('font-size: 20px; font-weight: bold')
-        self._cluster_boid_ratio_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-        self._cluster_boid_ratio_slider.setMinimum(0)
-        self._cluster_boid_ratio_slider.setMaximum(20)
-        self._cluster_boid_ratio_slider.setValue(0)
-        self._cluster_boid_ratio_slider.setTickPosition(QtWidgets.QSlider.TicksBelow)
-        self._cluster_boid_ratio_slider.setTickInterval(5)
-        self._cluster_boid_ratio_slider.setSingleStep(5)
-        # self._cluster_boid_ratio_slider.valueChanged.connect(self._canvas.update_cluster_boid_ratio)
+        # # Clusters to Boid Ratio Slider
+        # self._cluster_boid_ratio_label = QtWidgets.QLabel("Cluster to Boid Ratio:")
+        # self._cluster_boid_ratio_label.setAlignment(QtCore.Qt.AlignLeft)
+        # # self._cluster_boid_ratio_label.setStyleSheet('font-size: 20px; font-weight: bold')
+        # self._cluster_boid_ratio_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        # self._cluster_boid_ratio_slider.setMinimum(0)
+        # self._cluster_boid_ratio_slider.setMaximum(20)
+        # self._cluster_boid_ratio_slider.setValue(0)
+        # self._cluster_boid_ratio_slider.setTickPosition(QtWidgets.QSlider.TicksBelow)
+        # self._cluster_boid_ratio_slider.setTickInterval(5)
+        # self._cluster_boid_ratio_slider.setSingleStep(5)
+        # # self._cluster_boid_ratio_slider.valueChanged.connect(self._canvas.update_cluster_boid_ratio)
+
+        # Boundary Limits X,Y,Z
+        self._boundary_limits_label = QtWidgets.QLabel("Boundary Limits: ")
+        self._boundary_limits_label.setAlignment(QtCore.Qt.AlignLeft)
+        # self._boundary_limits_label.setStyleSheet('font-size: 20px; font-weight: bold')
+        self._boundary_limits_input = QtWidgets.QLineEdit()
+        self._boundary_limits_input.setText(str(INIT_CONFIG["boundary"]))
+        # self._boundary_limits_input.textChanged.connect(self._canvas.update_boundary_limits)
 
         # Cluster Types:
         self._cluster_types_label = QtWidgets.QLabel("Cluster Types:")
         self._cluster_types_label.setAlignment(QtCore.Qt.AlignLeft)
         # self._cluster_types_label.setStyleSheet('font-size: 20px; font-weight: bold')
         self._cluster_types_input = QtWidgets.QLineEdit()
-        self._cluster_types_input.setPlaceholderText("cluster_types")
-        self._cluster_types_input.setValidator(QtGui.QIntValidator())
+        self._cluster_types_input.setText(INIT_CONFIG["clusters"])
+        # self._cluster_types_input.setValidator(QtGui.QIntValidator())
         # self._cluster_types_input.textChanged.connect(self._canvas.update_cluster_types)
 
         # Boid Types:
@@ -89,7 +103,7 @@ class ControlsWidget(QtWidgets.QWidget):
         self._boid_types_label.setAlignment(QtCore.Qt.AlignLeft)
         # self._boid_types_label.setStyleSheet('font-size: 20px; font-weight: bold')
         self._boid_types_input = QtWidgets.QLineEdit()
-        self._boid_types_input.setPlaceholderText("boid_types")
+        self._boid_types_input.setPlaceholderText(INIT_CONFIG["boids"])
         self._boid_types_input.setValidator(QtGui.QIntValidator())
         # self._boid_types_input.textChanged.connect(self._canvas.update_boid_types)
 
@@ -131,7 +145,7 @@ class ControlsWidget(QtWidgets.QWidget):
 
         # Update Button:
         self._update_button = QtWidgets.QPushButton("Update")
-        # self._update_button.clicked.connect(self._canvas.update_params)
+        self._update_button.clicked.connect(self._update_button_clicked)
 
         # FPS Indicator:
         self._fps_label = QtWidgets.QLabel("FPS: 0")
@@ -144,10 +158,12 @@ class ControlsWidget(QtWidgets.QWidget):
         layout.addWidget(self._select_profile)
         layout.addWidget(self._seed_label)
         layout.addWidget(self._seed_input)
-        layout.addWidget(self._num_flies_label)
-        layout.addWidget(self._num_flies_input)
-        layout.addWidget(self._cluster_boid_ratio_label)
-        layout.addWidget(self._cluster_boid_ratio_slider)
+        # layout.addWidget(self._num_flies_label)
+        # layout.addWidget(self._num_flies_input)
+        # layout.addWidget(self._cluster_boid_ratio_label)
+        # layout.addWidget(self._cluster_boid_ratio_slider)
+        layout.addWidget(self._boundary_limits_label)
+        layout.addWidget(self._boundary_limits_input)
         layout.addWidget(self._cluster_types_label)
         layout.addWidget(self._cluster_types_input)
         layout.addWidget(self._boid_types_label)
@@ -188,8 +204,32 @@ class ControlsWidget(QtWidgets.QWidget):
     def _update_profile(self, event):
         pass
 
-    def _redraw_interaction_matrix(self, event):
+    def _draw_interaction_matrix(self, event):
         pass
+
+    def _update_button_clicked(self, event):
+        seed = int(self._seed_input.text())
+        clusters = [int(i) for i in self._cluster_types_input.text().split(",")]
+        # boids = [int(i) for i in self._boid_types_input.text().split(",")]
+        limits = [int(i) for i in self._boundary_limits_input.text().split(",")]
+
+        # new_simulation = Simulation(
+        #     clusters,
+        #     boids,
+        #     seed=seed,
+        #     limits=limits,
+        # )
+
+        print("Update Button Clicked")
+        print("Seed:", seed)
+        print("Clusters:", clusters)
+        # print("Boids:", boids)
+        print("Limits:", limits)
+
+        new_simulation = Simulation(clusters, limits = limits, seed=seed)
+        self._canvas.set_simulation_instance(new_simulation)
+        self._canvas.draw_boundary()
+
 
 
 if __name__ == "__main__":

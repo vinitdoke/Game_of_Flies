@@ -67,24 +67,28 @@ class Visualiser:
     def create_Camera(self, limits=None):
         if self.simulation is not None:
             limits = self.simulation.limits
-        
+
         if limits is None:
             raise ValueError("Limits not set")
 
         if limits[2] == 0:
-            print('PanZoomCamera')
-            self.view.camera = PanZoomCamera(
-                rect=(0, 0, limits[0], limits[1]),
-                aspect=1,
-            )
+            if type(self.view.camera) != PanZoomCamera:
+                self.view.camera.parent = None
+                print('New PanZoomCamera')
+                self.view.camera = PanZoomCamera(
+                    rect=(0, 0, limits[0], limits[1]),
+                    aspect=1,
+                )
         else:
-            print('TurntableCamera')
-            self.view.camera = TurntableCamera(
-                center=(limits[0] / 2, limits[1] / 2, limits[2] / 2),
-                fov=60,
-                distance=1.5 * max(limits),
-                elevation=30,
-            )
+            if type(self.view.camera) != TurntableCamera:
+                self.view.camera.parent = None
+                print('New TurntableCamera')
+                self.view.camera = TurntableCamera(
+                    center=(limits[0] / 2, limits[1] / 2, limits[2] / 2),
+                    fov=60,
+                    distance=1.5 * max(limits),
+                    elevation=30,
+                )
 
     def set_simulation_instance(self, obj):
         self.simulation = obj
@@ -153,6 +157,9 @@ class Visualiser:
         return self.canvas.render(**kwargs)
 
     def draw_boundary(self, limits=None):
+        if self.boundary is not None:
+            self.boundary.parent = None
+
         if self.simulation is not None:
             limits = self.simulation.limits
         
