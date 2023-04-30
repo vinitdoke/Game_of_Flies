@@ -15,6 +15,7 @@ class Visualiser:
         self.canvas = vispy.scene.SceneCanvas(keys="interactive", show=False,
                                               size=size)
         self.view = self.canvas.central_widget.add_view()
+
         self.scatters = []
 
 
@@ -65,6 +66,7 @@ class Visualiser:
             print(f"FPS: {FPS:.2f}")
 
     def create_Camera(self, limits=None):
+
         if self.simulation is not None:
             limits = self.simulation.limits
 
@@ -74,21 +76,29 @@ class Visualiser:
         if limits[2] == 0:
             if type(self.view.camera) != PanZoomCamera:
                 self.view.camera.parent = None
-                print('New PanZoomCamera')
-                self.view.camera = PanZoomCamera(
-                    rect=(0, 0, limits[0], limits[1]),
-                    aspect=1,
-                )
+                print('New PanZoomCamera, Limits are', limits)
+                new_cam = PanZoomCamera(
+                        rect=(0, 0, limits[0], limits[1]),
+                        aspect=1,
+                    )
+                self.view.camera = new_cam
+            else:
+                self.view.camera.rect = (0, 0, limits[0], limits[1])
+
         else:
             if type(self.view.camera) != TurntableCamera:
                 self.view.camera.parent = None
-                print('New TurntableCamera')
-                self.view.camera = TurntableCamera(
-                    center=(limits[0] / 2, limits[1] / 2, limits[2] / 2),
-                    fov=60,
-                    distance=1.5 * max(limits),
-                    elevation=30,
-                )
+                print('New TurntableCamera, Limits are', limits)
+                new_cam = TurntableCamera(
+                        center=(limits[0] / 2, limits[1] / 2, limits[2] / 2),
+                        fov=60,
+                        distance=1.5 * max(limits),
+                        elevation=30,
+                    )
+                self.view.camera = new_cam
+            else:
+                self.view.camera.center = (limits[0] / 2, limits[1] / 2, limits[2] / 2)
+                self.view.camera.distance = 1.5 * max(limits)
 
     def set_simulation_instance(self, obj):
         self.simulation = obj
