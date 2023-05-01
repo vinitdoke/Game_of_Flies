@@ -211,7 +211,7 @@ class ControlsWidget(QtWidgets.QWidget):
                 button.setFixedSize(30, 30)
                 # button.setStyleSheet("background-color: rgb(0, 0, 0);")
                 # button color based on parameter value
-                if self._canvas.simulation.parameter_matrix[2, i, j] > 0:
+                if self._canvas.simulation.parameter_matrix[3, i, j] > 0:
                     button.setStyleSheet("background-color: rgb(50, 255, 50);")
                 else:
                     button.setStyleSheet("background-color: rgb(255, 50, 50);")
