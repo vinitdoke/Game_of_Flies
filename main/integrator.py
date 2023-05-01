@@ -5,7 +5,7 @@ import time
 from state_parameters import initialise
 
 
-fac = 1.0
+fac = 0.95
 
 
 # Implementation of reduction for max function

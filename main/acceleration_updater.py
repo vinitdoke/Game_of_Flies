@@ -251,37 +251,37 @@ def accelerator(
                             acc1 = clusters_force(dist, parameter_matrix[:, t1, t2])
                             cuda.atomic.add(acc_x, i, -acc1 * (pos_x[i] - pos_x_2) / dist)
                             cuda.atomic.add(acc_y, i, -acc1 * (pos_y[i] - pos_y_2) / dist)
-                            #cuda.atomic.add(acc_z, i, -acc1 * (pos_z[i] - pos_z_2) / dist)
+                            cuda.atomic.add(acc_z, i, -acc1 * (pos_z[i] - pos_z_2) / dist)
                         elif parameter_matrix[-1, t1, t2] == 1:
                             acc1 = boids_force(dist, vel_x[j] - vel_x[i], vel_y[j] - vel_y[i], vel_z[j] - vel_z[i],
                                                pos_x_2 - pos_x[i], pos_y_2 - pos_y[i], pos_z_2 - pos_z[i],
                                                parameter_matrix[:, t1, t2])
                             cuda.atomic.add(acc_x, i, acc1[0])
                             cuda.atomic.add(acc_y, i, acc1[1])
-                            #cuda.atomic.add(acc_z, i, acc1[2])
+                            cuda.atomic.add(acc_z, i, acc1[2])
 
                         #cuda.atomic.add(acc_x, i, 1)
                         #cuda.atomic.add(acc_y, i, 1)
-                        cuda.atomic.add(acc_z, i, 1)
+                        # cuda.atomic.add(acc_z, i, 1)
 
                         if bin2 != particle_bins[i]:
                             if parameter_matrix[-1, t2, t1] == 0:
                                 acc2 = clusters_force(dist, parameter_matrix[:, t2, t1])
                                 cuda.atomic.add(acc_x, j, acc2 * (pos_x[i] - pos_x_2) / dist)
                                 cuda.atomic.add(acc_y, j, acc2 * (pos_y[i] - pos_y_2) / dist)
-                                #cuda.atomic.add(acc_z, j, acc2 * (pos_z[i] - pos_z_2) / dist)
+                                cuda.atomic.add(acc_z, j, acc2 * (pos_z[i] - pos_z_2) / dist)
                             elif parameter_matrix[-1, t2, t1] == 1:
                                 acc2 = boids_force(dist, vel_x[i] - vel_x[j], vel_y[i] - vel_y[j], vel_z[i] - vel_z[j],
                                                    pos_x[i] - pos_x_2, pos_y[i] - pos_y_2, pos_z[i] - pos_z_2,
                                                    parameter_matrix[:, t2, t1])
                                 cuda.atomic.add(acc_x, j, acc2[0])
                                 cuda.atomic.add(acc_y, j, acc2[1])
-                                #cuda.atomic.add(acc_z, j, acc2[2])
+                                cuda.atomic.add(acc_z, j, acc2[2])
 
 
                             #cuda.atomic.add(acc_x, j, 1)
                             #cuda.atomic.add(acc_y, j, 1)
-                            cuda.atomic.add(acc_z, j, 1)
+                            #cuda.atomic.add(acc_z, j, 1)
 
 
 if __name__ == "__main__":

@@ -143,7 +143,7 @@ class Simulation:
                 self.d_parameter_matrix, self.d_particle_tia, self.d_acc_x, self.d_acc_y, self.d_acc_z, self.d_sq_speed,
                 self.d_bin_neighbours, self.d_particle_bins, self.d_bin_offsets, self.d_particle_indices,
                 self.d_particle_bin_starts, self.d_particle_bin_counts,
-                self.blocks, self.threads, timestep = 0.002
+                self.blocks, self.threads, timestep = None
         )
         self.d_acc_x.copy_to_host(self.acc_x)
         self.d_acc_y.copy_to_host(self.acc_y)
