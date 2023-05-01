@@ -148,6 +148,10 @@ class ControlsWidget(QtWidgets.QWidget):
             self._params.addWidget(input)
             self._params_inputs.append(input)
 
+        # Update Params Button:
+        self._update_params_button = QtWidgets.QPushButton("Update Params")
+        self._update_params_button.clicked.connect(self._update_params_button_clicked)
+
         # Update Button:
         self._update_button = QtWidgets.QPushButton("Update")
         self._update_button.clicked.connect(self._update_button_clicked)
@@ -177,6 +181,7 @@ class ControlsWidget(QtWidgets.QWidget):
         layout.addLayout(self._interaction_matrix)
         layout.addWidget(self._params_label)
         layout.addLayout(self._params)
+        layout.addWidget(self._update_params_button)
         layout.addWidget(self._update_button)
         layout.addStretch(1)
         layout.addWidget(self._fps_label)
@@ -204,7 +209,13 @@ class ControlsWidget(QtWidgets.QWidget):
             for j in range(n):
                 button = QtWidgets.QPushButton()
                 button.setFixedSize(30, 30)
-                button.setStyleSheet("background-color: rgb(0, 0, 0);")
+                # button.setStyleSheet("background-color: rgb(0, 0, 0);")
+                # button color based on parameter value
+                if self._canvas.simulation.parameter_matrix[2, i, j] > 0:
+                    button.setStyleSheet("background-color: rgb(50, 255, 50);")
+                else:
+                    button.setStyleSheet("background-color: rgb(255, 50, 50);")
+
                 button.clicked.connect(
                     lambda nill, i=i, j=j: self._update_specific_interaction(i, j)
                 )
@@ -224,9 +235,21 @@ class ControlsWidget(QtWidgets.QWidget):
     def _display_params(self):
         if self._canvas.simulation is not None:
             parameter_matrix = self._canvas.simulation.parameter_matrix
-            relevant_params = parameter_matrix[:, self.interaction_i, self.interaction_j]
+            relevant_params = parameter_matrix[
+                :, self.interaction_i, self.interaction_j
+            ]
             for i in range(4):
                 self._params_inputs[i].setText(str(relevant_params[i]))
+
+    def _update_params_button_clicked(self, event):
+        print("Update Params Button Clicked")
+        new_params = [float(i.text()) for i in self._params_inputs]
+        print("New Params:", new_params)
+        self._canvas.simulation.update_parameter_matrix(
+            self.interaction_i, self.interaction_j, new_params
+        )
+        clusters = [int(i) for i in self._cluster_types_input.text().split(",")]
+        self._redraw_interaction_matrix(len(clusters))
 
     def _update_button_clicked(self, event):
         seed = int(self._seed_input.text())
@@ -242,9 +265,10 @@ class ControlsWidget(QtWidgets.QWidget):
 
         new_simulation = Simulation(clusters, limits=limits, seed=seed)
         # new_simulation.update()
-        self._redraw_interaction_matrix(len(clusters))
         self._canvas.set_simulation_instance(new_simulation)
         self._canvas.draw_boundary()
+
+        self._redraw_interaction_matrix(len(clusters))
 
 
 if __name__ == "__main__":

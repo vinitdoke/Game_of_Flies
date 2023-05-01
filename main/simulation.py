@@ -197,7 +197,10 @@ class Simulation:
                 cr = True
         if cr:
             print("ERRRORORORO")        
-        
+
+    def update_parameter_matrix(self, i, j, params):
+        self.parameter_matrix[:4, i, j] = params
+        self.d_parameter_matrix = cuda.to_device(self.parameter_matrix)
 
     def update(self):
         self.core_step()
