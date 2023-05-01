@@ -166,12 +166,12 @@ class Visualiser:
     def draw_boundary(self, limits=None):
         if self.boundary is not None:
             self.boundary.parent = None
-
-        if self.simulation is not None:
-            limits = self.simulation.limits
-
+        
         if limits is None:
-            raise ValueError("Limits not set")
+            if self.simulation is not None:
+                limits = self.simulation.limits
+            else:
+                raise ValueError("Limits not set")
 
         if limits[2] == 0:
             self.boundary = visuals.Rectangle(
