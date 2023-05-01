@@ -40,7 +40,7 @@ if __name__ == "__main__":
             app.run()
         else:
             
-            input_array = np.array([2000]*1)  # max 9 types due to color_list
+            input_array = np.array([500]*9)  # max 9 types due to color_list
             simulation = Simulation(input_array, limits=(100, 100, 100), seed=434)
             simulation.update()  # dummy call to avoid frame freeze on first update
             # seed 4, 10, 100, 50, 69, 35, 434, 954, 1039
