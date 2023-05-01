@@ -79,10 +79,10 @@ class Simulation:
         self.parameter_matrix[3, :, :] *= 0.05
         self.parameter_matrix[3, :, :] += 0.1'''
 
-        self.parameter_matrix[-1, :, :] = np.round(np.random.random((self.num_types, self.num_types)))
-        self.parameter_matrix[-1, :, :] = 1
+        #self.parameter_matrix[-1, :, :] = np.round(np.random.random((self.num_types, self.num_types)))
+        #self.parameter_matrix[-1, :, :] = 1
         #self.parameter_matrix[-1, :, :] = np.array([[i==j for i in range(self.num_types)] for j in range(self.num_types)])
-        self.parameter_matrix[-1, :, :] = 1
+        self.parameter_matrix[-1, :, :] = 0
         for i in range(self.num_types):
             for j in range(self.num_types):
                 if i > j:
@@ -100,14 +100,14 @@ class Simulation:
 
         self.parameter_matrix[2][boid] *= -2
         self.parameter_matrix[2][boid] -= 2
-        f = 7
+        f = 1
         self.parameter_matrix[3][boid] *= -0.1
         self.parameter_matrix[3][boid] -= 0.1
         self.parameter_matrix[3][boid] *= f
-        for i in range(self.parameter_matrix[0,:,0].size):
+        '''for i in range(self.parameter_matrix[0,:,0].size):
             if self.parameter_matrix[-1, i, i] == 1:
                 self.parameter_matrix[3, i, i] = abs(self.parameter_matrix[3, i, i]) / f
-                self.parameter_matrix[2, i, i] = abs(self.parameter_matrix[2, i, i])
+                self.parameter_matrix[2, i, i] = abs(self.parameter_matrix[2, i, i])'''
 
         
         self.parameter_matrix[0][clus] *= 3
@@ -122,7 +122,7 @@ class Simulation:
         self.parameter_matrix[3][clus] *= 12
         self.parameter_matrix[3][clus] -= 6
 
-        self.r_max = np.max(self.parameter_matrix[0:1, :, :])
+        self.r_max = np.max(self.parameter_matrix[1, :, :])
 
         self.threads = 512 # weird issues with lower no. of threads. Do not reduce
         self.blocks = int(np.ceil(self.num_particles/self.threads))
@@ -192,7 +192,7 @@ class Simulation:
                 self.num_types, self.d_boid_acc_x, self.d_boid_acc_y, self.d_boid_vel_x, self.d_boid_vel_y, self.d_boid_counts,
                 self.d_sq_speed, self.d_bin_neighbours, self.d_particle_bins, self.d_bin_offsets,
                 self.d_particle_indices, self.d_particle_bin_starts, self.d_particle_bin_counts,
-                self.blocks, self.threads, timestep = 0.01
+                self.blocks, self.threads, timestep = None
         )
         '''self.d_acc_x.copy_to_host(self.acc_x)
         self.d_acc_y.copy_to_host(self.acc_y)

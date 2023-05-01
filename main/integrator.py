@@ -5,7 +5,7 @@ import time
 from state_parameters import initialise
 
 
-fac = 1.0
+fac = 0.9
 max_spd = 20
 
 # Implementation of reduction for max function
@@ -148,7 +148,7 @@ def integrate(
         timestep = sq_speed[u - 1]
         timestep = np.sqrt(timestep)
         if timestep > 1e-6:
-            timestep = 0.2 / timestep
+            timestep = 0.1 / timestep
         else:
             timestep = 0.1
     

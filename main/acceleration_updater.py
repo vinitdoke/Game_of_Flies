@@ -8,9 +8,9 @@ from state_parameters import initialise
 # r_min, r_max, f_min, f_max
 @cuda.jit(device=True)
 def clusters(dist: float, args: np.ndarray):
-    if dist < 0 or dist > args[1]:
-        return 0
-    elif dist < args[0]:
+    #if dist < 0 or dist > args[1]:
+        #return 0
+    if dist < args[0]:
         return -args[2] / args[0] * dist + args[2]
     elif dist < (args[0] + args[1]) / 2:
         return 2 * args[3] / (args[1] - args[0]) * (dist - args[0])
