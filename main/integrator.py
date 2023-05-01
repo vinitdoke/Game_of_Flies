@@ -161,7 +161,6 @@ def integrate(
 
         bin_neighbours: np.ndarray,
         particle_bins: np.ndarray,
-        bin_offsets: np.ndarray,
         particle_indices: np.ndarray,
         bin_starts: np.ndarray,
         bin_counts: np.ndarray,
@@ -173,11 +172,14 @@ def integrate(
 ) -> None:
     if timestep is None:
         u = 1
+        u2 = 0
         while u < num_particles:
             u = u << 1
+            u2 += 1
         set_sq_speed[blocks, threads](vel_x, vel_y, vel_z, sq_speed, num_particles, u)
-        max_reduction[blocks, threads](sq_speed, int(np.log2(num_particles)), u)
-        timestep = sq_speed[u - 1]
+        max_reduction[blocks, threads](sq_speed, u2, u)
+
+        timestep = sq_speed[-1]
         timestep = np.sqrt(timestep)
         if timestep > 1e-6:
             timestep = 0.1 / timestep

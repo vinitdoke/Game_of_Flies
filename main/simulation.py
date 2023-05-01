@@ -32,7 +32,10 @@ class Simulation:
         self.num_types = np.max(self.particle_type_index_array) + 1
         self.parameter_matrix = self.init["parameter_matrix"]
         self.r_max = self.init["max_rmax"]
-        self.sq_speed = np.zeros_like(self.vel_x)
+        uu = 1
+        while uu < self.num_particles:
+            uu <<= 1
+        self.sq_speed = np.zeros(uu)
 
         # r_min, r_max, f_min, f_max
         '''self.parameter_matrix[0, :, :] *= 3
@@ -82,7 +85,7 @@ class Simulation:
         # self.parameter_matrix[-1, :, :] = np.round(np.random.random((self.num_types, self.num_types)))
         # self.parameter_matrix[-1, :, :] = 1
         # self.parameter_matrix[-1, :, :] = np.array([[i==j for i in range(self.num_types)] for j in range(self.num_types)])
-        self.parameter_matrix[-1, :, :] = 1
+        self.parameter_matrix[-1, :, :] = 0
 
         # for i in range(self.num_types):
         #     for j in range(self.num_types):
@@ -94,21 +97,23 @@ class Simulation:
         print(boid)
 
         self.parameter_matrix[0][boid] *= 2
-        self.parameter_matrix[0][boid] += 8
+        self.parameter_matrix[0][boid] += 12
 
         self.parameter_matrix[1][boid] *= 4
         self.parameter_matrix[1][boid] += 2
 
         self.parameter_matrix[2][boid] *= -2
-        self.parameter_matrix[2][boid] -= 2
-        f = 1
+        self.parameter_matrix[2][boid] -= 5
+        f = 12
         self.parameter_matrix[3][boid] *= -0.1
         self.parameter_matrix[3][boid] -= 0.1
         self.parameter_matrix[3][boid] *= f
-        '''for i in range(self.parameter_matrix[0,:,0].size):
+
+        for i in range(self.parameter_matrix[0,:,0].size):
             if self.parameter_matrix[-1, i, i] == 1:
                 self.parameter_matrix[3, i, i] = abs(self.parameter_matrix[3, i, i]) / f
-                self.parameter_matrix[2, i, i] = abs(self.parameter_matrix[2, i, i])'''
+                self.parameter_matrix[2, i, i] = abs(self.parameter_matrix[2, i, i]) / 2
+                
 
         self.parameter_matrix[0][clus] *= 3
         self.parameter_matrix[0][clus] += 5
@@ -212,7 +217,7 @@ class Simulation:
                   self.d_parameter_matrix, self.d_particle_tia, self.d_acc_x, self.d_acc_y, self.d_acc_z,
                   self.num_types, self.d_boid_acc_x, self.d_boid_acc_y, self.d_boid_acc_z,
                   self.d_boid_vel_x, self.d_boid_vel_y, self.d_boid_vel_z, self.d_boid_counts,
-                  self.d_sq_speed, self.d_bin_neighbours, self.d_particle_bins, self.d_bin_offsets,
+                  self.d_sq_speed, self.d_bin_neighbours, self.d_particle_bins,
                   self.d_particle_indices, self.d_particle_bin_starts, self.d_particle_bin_counts,
                   self.blocks, self.threads, timestep=None
                   )
@@ -259,6 +264,9 @@ class Simulation:
             print(f"b:  {b}   sum b:  {np.sum(b)}")
             print(f"b2:  {b2} sum b2:  {np.sum(b2) - self.particle_bin_counts[self.particle_bins[tb]]}")
             print("END--\n\n")'''
+    def update_parameter_matrix(self, i, j, params):
+            self.parameter_matrix[:4, i, j] = params
+            self.d_parameter_matrix = cuda.to_device(self.parameter_matrix)
 
     def update(self):
         self.core_step()
