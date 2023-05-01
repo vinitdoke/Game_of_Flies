@@ -82,7 +82,7 @@ class Simulation:
         #self.parameter_matrix[-1, :, :] = np.round(np.random.random((self.num_types, self.num_types)))
         #self.parameter_matrix[-1, :, :] = 1
         #self.parameter_matrix[-1, :, :] = np.array([[i==j for i in range(self.num_types)] for j in range(self.num_types)])
-        self.parameter_matrix[-1, :, :] = 0
+        self.parameter_matrix[-1, :, :] = 1
         for i in range(self.num_types):
             for j in range(self.num_types):
                 if i > j:

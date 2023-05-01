@@ -51,6 +51,8 @@ def step2(
     vel_y: np.ndarray,
     acc_x: np.ndarray,
     acc_y: np.ndarray,
+    particle_tia,
+    parameter_matrix,
     num_particles: float,
     timestep: float = 0.02
 ):
@@ -62,8 +64,10 @@ def step2(
         vel_x[i] += acc_x[i] * 0.5 * timestep
         vel_y[i] += acc_y[i] * 0.5 * timestep
 
-        vel_x[i] *= fac
-        vel_y[i] *= fac
+        p = particle_tia[i]
+        if parameter_matrix[-1, p, p]==0:
+            vel_x[i] *= fac
+            vel_y[i] *= fac
 
 @cuda.jit
 def boundary_condition(
@@ -158,7 +162,7 @@ def integrate(
                                 acc_x, acc_y, num_types, boid_acc_x, boid_acc_y, boid_vel_x, boid_vel_y, boid_counts,
                                 bin_neighbours, particle_bins, particle_indices, bin_starts, bin_counts)
     
-    step2[blocks, threads](pos_x, pos_y, vel_x, vel_y, acc_x, acc_y, num_particles, timestep)
+    step2[blocks, threads](pos_x, pos_y, vel_x, vel_y, acc_x, acc_y, particle_type_index_array, parameter_matrix, num_particles, timestep)
 
     boundary_condition[blocks, threads](pos_x, pos_y, limits[0], limits[1], num_particles)
 
