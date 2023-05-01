@@ -4,7 +4,6 @@ from simulation import Simulation
 from vispy.app import use_app
 
 # TODO Timestamp Connection to Simulation
-# TODO Interaction Matrix Colored Dots
 
 # CANVAS_SIZE = (800, 600)
 INIT_CONFIG = {
@@ -121,24 +120,26 @@ class ControlsWidget(QtWidgets.QWidget):
         self._interaction_matrix = QtWidgets.QGridLayout()
         self._interaction_matrix.setSpacing(5)
         self._interaction_matrix_buttons = []
-        self.COLOUR_LIST = self._canvas.COLOUR_LIST 
+        self.COLOUR_LIST = self._canvas.COLOUR_LIST
         for i in range(INIT_CONFIG["interactions"] + 1):
             for j in range(INIT_CONFIG["interactions"] + 1):
-                if i>0 and j>0:
+                if i > 0 and j > 0:
                     button = QtWidgets.QPushButton()
                     button.setFixedSize(30, 30)
                     button.setStyleSheet("background-color: rgb(0, 0, 0);")
                     button.clicked.connect(
-                        lambda nill, i=i, j=j: self._update_specific_interaction(i-1, j-1)
+                        lambda nill, i=i, j=j: self._update_specific_interaction(
+                            i - 1, j - 1
+                        )
                     )
                     # print(f"i: {i}, j: {j}")
-                elif i==0 and j>0:
+                elif i == 0 and j > 0:
 
                     button = QtWidgets.QPushButton()
                     button.setFixedSize(20, 20)
                     button.setStyleSheet(f"background-color: {self.COLOUR_LIST[j-1]};")
                     # print(f"2")
-                elif j == 0 and i>0:
+                elif j == 0 and i > 0:
 
                     button = QtWidgets.QPushButton()
                     button.setFixedSize(20, 20)
@@ -171,11 +172,16 @@ class ControlsWidget(QtWidgets.QWidget):
             # input.textChanged.connect(self._canvas.update_params)
             self._params.addWidget(input)
             self._params_inputs.append(input)
+        # Dropdown Menu:
+        self._params_dropdown = QtWidgets.QComboBox()
+        self._params_dropdown.addItems(["Boid", "Cluster"])
+        # self._params_dropdown.currentIndexChanged.connect(self._params_dropdown_changed)
+        self._params.addWidget(self._params_dropdown)
 
         # Update Params Button:
         self._update_params_button = QtWidgets.QPushButton("Update Live")
         self._update_params_button.clicked.connect(self._update_params_button_clicked)
-        
+
         # Timestep:
         self._timestep_label = QtWidgets.QLabel("Timestep:")
         self._timestep_label.setAlignment(QtCore.Qt.AlignLeft)
@@ -184,7 +190,6 @@ class ControlsWidget(QtWidgets.QWidget):
         self._timestep_input.setText(str(INIT_CONFIG["timestep"]))
         self._timestep_input.setValidator(QtGui.QDoubleValidator())
         # self._timestep_input.textChanged.connect(self._canvas.update_timestep)
-
 
         # Update Button:
         self._update_button = QtWidgets.QPushButton("Update")
@@ -244,25 +249,27 @@ class ControlsWidget(QtWidgets.QWidget):
 
         for i in range(n + 1):
             for j in range(n + 1):
-                if i>0 and j>0:
+                if i > 0 and j > 0:
                     button = QtWidgets.QPushButton()
                     button.setFixedSize(30, 30)
-                    if self._canvas.simulation.parameter_matrix[3, i-1, j-1] > 0:
+                    if self._canvas.simulation.parameter_matrix[3, i - 1, j - 1] > 0:
                         button.setStyleSheet("background-color: rgb(50, 255, 50);")
                     else:
                         button.setStyleSheet("background-color: rgb(255, 50, 50);")
 
                     button.clicked.connect(
-                        lambda nill, i=i, j=j: self._update_specific_interaction(i-1, j-1)
+                        lambda nill, i=i, j=j: self._update_specific_interaction(
+                            i - 1, j - 1
+                        )
                     )
                     # print(f"i: {i}, j: {j}")
-                elif i==0 and j>0:
+                elif i == 0 and j > 0:
 
                     button = QtWidgets.QPushButton()
                     button.setFixedSize(20, 20)
                     button.setStyleSheet(f"background-color: {self.COLOUR_LIST[j-1]};")
                     # print(f"2")
-                elif j == 0 and i>0:
+                elif j == 0 and i > 0:
 
                     button = QtWidgets.QPushButton()
                     button.setFixedSize(20, 20)
@@ -294,10 +301,17 @@ class ControlsWidget(QtWidgets.QWidget):
             ]
             for i in range(4):
                 self._params_inputs[i].setText(f"{relevant_params[i]:.2f}")
+            
+            if self._canvas.simulation.parameter_matrix[-1, self.interaction_i, self.interaction_j]:
+                self._params_dropdown.setCurrentIndex(0)
+            else:
+                self._params_dropdown.setCurrentIndex(1)
+
 
     def _update_params_button_clicked(self, event):
         print("Update Params Button Clicked")
         new_params = [float(i.text()) for i in self._params_inputs]
+        new_params.append(1) if self._params_dropdown.currentIndex() == 0 else new_params.append(0)
         print("New Params:", new_params)
         self._canvas.simulation.update_parameter_matrix(
             self.interaction_i, self.interaction_j, new_params
@@ -309,7 +323,6 @@ class ControlsWidget(QtWidgets.QWidget):
     def _redraw_boundaries(self, event):
         limits = [int(i) for i in self._boundary_limits_input.text().split(",")]
         self._canvas.draw_boundary(limits)
-
 
     def _update_button_clicked(self, event):
         seed = int(self._seed_input.text())
@@ -329,6 +342,7 @@ class ControlsWidget(QtWidgets.QWidget):
         self._canvas.draw_boundary()
 
         self._redraw_interaction_matrix(len(clusters))
+        self.interaction_i, self.interaction_j = 0, 0
         self._display_params()
 
 

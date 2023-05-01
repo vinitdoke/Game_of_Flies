@@ -264,8 +264,9 @@ class Simulation:
             print(f"b:  {b}   sum b:  {np.sum(b)}")
             print(f"b2:  {b2} sum b2:  {np.sum(b2) - self.particle_bin_counts[self.particle_bins[tb]]}")
             print("END--\n\n")'''
+
     def update_parameter_matrix(self, i, j, params):
-            self.parameter_matrix[:4, i, j] = params
+            self.parameter_matrix[:5, i, j] = params
             self.d_parameter_matrix = cuda.to_device(self.parameter_matrix)
 
     def update(self):
