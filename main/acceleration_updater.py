@@ -188,7 +188,7 @@ def set_bin_neighbours(num_bin_x: int, num_bin_y: int, num_bin_z: int, bin_neigh
                     bin_neighbours[i + j * num_bin_x + k * num_bin_x * num_bin_y, 12] = im1 + jm1 * num_bin_x + kp1 * num_bin_x * num_bin_y
                     bin_neighbours[i + j * num_bin_x + k * num_bin_x * num_bin_y, 13] = i + j * num_bin_x + kp1 * num_bin_x * num_bin_y
 
-# 2D implementation
+
 @cuda.jit
 def accelerator(
         pos_x: np.ndarray,
@@ -320,7 +320,7 @@ if __name__ == "__main__":
     r_max = np.max(parameter_matrix[1, :, :])
 
 
-    threads = 64
+    threads = 512
     blocks = int(np.ceil(num_particles/threads))
 
     num_bin_x = int(np.floor(limits[0] / r_max))
