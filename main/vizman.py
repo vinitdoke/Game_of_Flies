@@ -9,21 +9,19 @@ import os
 
 # TODO Rename scatters attribute to scene_objects
 
-class Visualiser:
-    def __init__(self, size = (800, 600), filepath = None):
 
-        self.canvas = vispy.scene.SceneCanvas(keys="interactive", show=False,
-                                              size=size)
+class Visualiser:
+    def __init__(self, size=(800, 600), filepath=None):
+
+        self.canvas = vispy.scene.SceneCanvas(keys="interactive", show=False, size=size)
         self.view = self.canvas.central_widget.add_view()
 
         self.scatters = []
-
 
         self.simulation = None
         self.axis = None
 
         self.timer = app.Timer()
-
 
         if filepath is not None:
             # print('filepath set')
@@ -34,7 +32,6 @@ class Visualiser:
         else:
             self.timer.connect(self.update)
 
-
         # BOOLS
         self.plotting_initialised = False
 
@@ -44,7 +41,6 @@ class Visualiser:
 
         # Show Canvas
         self.canvas_shown = False
-
 
         self.colour_array = None
         self.boundary = None
@@ -76,11 +72,11 @@ class Visualiser:
         if limits[2] == 0:
             if type(self.view.camera) != PanZoomCamera:
                 self.view.camera.parent = None
-                print('New PanZoomCamera, Limits are', limits)
+                print("New PanZoomCamera, Limits are", limits)
                 new_cam = PanZoomCamera(
-                        rect=(0, 0, limits[0], limits[1]),
-                        aspect=1,
-                    )
+                    rect=(0, 0, limits[0], limits[1]),
+                    aspect=1,
+                )
                 self.view.camera = new_cam
             else:
                 self.view.camera.rect = (0, 0, limits[0], limits[1])
@@ -88,13 +84,13 @@ class Visualiser:
         else:
             if type(self.view.camera) != TurntableCamera:
                 self.view.camera.parent = None
-                print('New TurntableCamera, Limits are', limits)
+                print("New TurntableCamera, Limits are", limits)
                 new_cam = TurntableCamera(
-                        center=(limits[0] / 2, limits[1] / 2, limits[2] / 2),
-                        fov=60,
-                        distance=1.5 * max(limits),
-                        elevation=30,
-                    )
+                    center=(limits[0] / 2, limits[1] / 2, limits[2] / 2),
+                    fov=60,
+                    distance=1.5 * max(limits),
+                    elevation=30,
+                )
                 self.view.camera = new_cam
             else:
                 self.view.camera.center = (limits[0] / 2, limits[1] / 2, limits[2] / 2)
@@ -103,7 +99,6 @@ class Visualiser:
     def set_simulation_instance(self, obj):
         self.simulation = obj
         self.init_plotting()
-        
 
     def init_plotting(self, limits=None, index_list=None):
         self.create_Camera(limits)
@@ -139,7 +134,7 @@ class Visualiser:
 
     def update(self, _):
         self.simulation.update()
-        #print(self.simulation.output)
+        # print(self.simulation.output)
         self.scatters[0].set_data(
             self.simulation.output,
             edge_color=None,
@@ -154,12 +149,14 @@ class Visualiser:
             face_color=self.colour_array,
             size=5,
         )
-    
+
     def update_from_file(self, _):
         if self.image_idx == len(self.list_of_frames):
             # print('replaying')
             self.image_idx = 0
-        data = np.load(os.path.join(self.filepath, "frames", self.list_of_frames[self.image_idx]))
+        data = np.load(
+            os.path.join(self.filepath, "frames", self.list_of_frames[self.image_idx])
+        )
         self.blind_update(data)
         self.image_idx += 1
 
@@ -172,7 +169,7 @@ class Visualiser:
 
         if self.simulation is not None:
             limits = self.simulation.limits
-        
+
         if limits is None:
             raise ValueError("Limits not set")
 
@@ -211,7 +208,7 @@ class Visualiser:
             self.boundary = visuals.Line(
                 pos=pts, color=(1, 1, 1, 0.5), width=1, parent=self.view.scene
             )
-        print('Boundary drawn')
+        print("Boundary drawn")
 
     def start(self):
         if not self.canvas_shown:

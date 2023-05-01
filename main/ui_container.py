@@ -9,7 +9,7 @@ INIT_CONFIG = {
     "seed": 434,
     "boundary": "100, 100, 100",
     "clusters": "200, 200, 200, 200",
-    "boids":"0, 0",
+    "boids": "0, 0",
     "interactions": 4,
 }
 
@@ -123,12 +123,16 @@ class ControlsWidget(QtWidgets.QWidget):
                 button = QtWidgets.QPushButton()
                 button.setFixedSize(30, 30)
                 button.setStyleSheet("background-color: rgb(0, 0, 0);")
-                button.clicked.connect(lambda nill, i=i, j=j: self._update_specific_interaction(i, j))
+                button.clicked.connect(
+                    lambda nill, i=i, j=j: self._update_specific_interaction(i, j)
+                )
                 self._interaction_matrix.addWidget(button, i, j)
                 self._interaction_matrix_buttons.append((button, i, j))
 
         # 4 Params:
-        self._params_label = QtWidgets.QLabel(f"Parameters: {self.interaction_i}, {self.interaction_j}")
+        self._params_label = QtWidgets.QLabel(
+            f"Parameters: {self.interaction_i}, {self.interaction_j}"
+        )
         self._params_label.setAlignment(QtCore.Qt.AlignLeft)
         # self._params_label.setStyleSheet('font-size: 20px; font-weight: bold')
 
@@ -201,19 +205,28 @@ class ControlsWidget(QtWidgets.QWidget):
                 button = QtWidgets.QPushButton()
                 button.setFixedSize(30, 30)
                 button.setStyleSheet("background-color: rgb(0, 0, 0);")
-                button.clicked.connect(lambda nill, i=i, j=j: self._update_specific_interaction(i, j))
+                button.clicked.connect(
+                    lambda nill, i=i, j=j: self._update_specific_interaction(i, j)
+                )
                 self._interaction_matrix.addWidget(button, i, j)
                 self._interaction_matrix_buttons.append(button)
 
     def _remove_interaction_matrix_buttons(self):
-        for i in reversed(range(self._interaction_matrix.count())): 
+        for i in reversed(range(self._interaction_matrix.count())):
             self._interaction_matrix.itemAt(i).widget().setParent(None)
 
     def _update_specific_interaction(self, i, j):
         self._params_label.setText(f"Parameters: {i}, {j}")
         self.interaction_i = i
         self.interaction_j = j
+        self._display_params()
 
+    def _display_params(self):
+        if self._canvas.simulation is not None:
+            parameter_matrix = self._canvas.simulation.parameter_matrix
+            relevant_params = parameter_matrix[:, self.interaction_i, self.interaction_j]
+            for i in range(4):
+                self._params_inputs[i].setText(str(relevant_params[i]))
 
     def _update_button_clicked(self, event):
         seed = int(self._seed_input.text())
@@ -227,12 +240,11 @@ class ControlsWidget(QtWidgets.QWidget):
         # print("Boids:", boids)
         print("Limits:", limits)
 
-        new_simulation = Simulation(clusters, limits = limits, seed=seed)
+        new_simulation = Simulation(clusters, limits=limits, seed=seed)
         # new_simulation.update()
         self._redraw_interaction_matrix(len(clusters))
         self._canvas.set_simulation_instance(new_simulation)
         self._canvas.draw_boundary()
-
 
 
 if __name__ == "__main__":
