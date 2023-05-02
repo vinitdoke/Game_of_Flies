@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+import argparse
 
 from force_profiles import general_force_function
 from state_parameters import initialise
@@ -186,7 +187,58 @@ def main():
                         limits, timing = [phys_time, plot_time])
             plot_end = time.perf_counter()
             plot_time = (plot_end - plot_start) / plot_freq
-        
-        
+
+
+def bench_main(n_type_arr):
+    # Initialise the state parameters
+    # n_type_arr = np.array([5000, 5000, 5000, 5000])
+
+    init = initialise(n_type_arr, seed=434, limits=[500, 500, 0])
+
+    pos_x = init["pos_x"]
+    pos_y = init["pos_y"]
+    pos_z = init["pos_z"]
+    vel_x = init["vel_x"]
+    vel_y = init["vel_y"]
+    vel_z = init["vel_z"]
+    acc_x = init["acc_x"]
+    acc_y = init["acc_y"]
+    acc_z = init["acc_z"]
+    limits = np.array(init["limits"])
+    num_particles = np.sum(init["n_type_array"])
+    particle_type_index_array = np.array(init["particle_type_indx_array"], dtype="int32")
+    parameter_matrix = init["parameter_matrix"]
+    r_max = init["max_rmax"]
+
+    # r_min, r_max, f_min, f_max
+    parameter_matrix[0] *= 3
+    parameter_matrix[0] += 5
+
+    parameter_matrix[1] *= 5
+    parameter_matrix[1] += 8
+
+    parameter_matrix[2] *= 3
+    parameter_matrix[2] -= 10
+
+    parameter_matrix[3] *= 12
+    parameter_matrix[3] -= 6
+
+    r_max = np.max(parameter_matrix[1, :, :])
+
+    iterations = 500
+
+    # Run the simulation
+    start = time.perf_counter()
+    for i in range(iterations):
+        dt = 0.05
+        integrate(pos_x, pos_y, pos_z, vel_x, vel_y, vel_z, limits, r_max, num_particles,
+                  parameter_matrix, particle_type_index_array, acc_x, acc_y, acc_z, dt)
+    print(time.perf_counter() - start)
+
+
 if __name__ == '__main__':
-    main()
+    # main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-nt', '--ntype', type=int, nargs='+', default=np.array([100, 100]), help='num of particles')
+    n_type_arr = argparse.arg.ntype
+    bench_main(n_type_arr)
