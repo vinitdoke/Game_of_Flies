@@ -41,10 +41,11 @@ def initialise(
 ):
     max_particle = 10  # max particle of a single kind
     buffer = 0  # extra space for adding particles
-    total_len = len(n_type) * max_particle + buffer
-    total_given_part = sum(n_type)
+    #total_len = len(n_type) * max_particle + buffer
+    total_given_part = int(sum(n_type))
+    print(total_given_part)
 
-    total_len = total_given_part * 2
+    total_len = int(total_given_part)
 
     dim = 3
 
@@ -75,7 +76,7 @@ def initialise(
     part_type_indx_arr = np.ones(total_len) * np.nan
     s = len(n_type) - 1
     for i in range(len(n_type)):
-        trick_sum = sum(n_type[:len(n_type) - i])
+        trick_sum = int(sum(n_type[:len(n_type) - i]))
         part_type_indx_arr[:trick_sum] = s
         s -= 1
 

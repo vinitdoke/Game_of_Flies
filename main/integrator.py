@@ -182,7 +182,7 @@ def integrate(
         timestep = sq_speed[-1]
         timestep = np.sqrt(timestep)
         if timestep > 1e-6:
-            timestep = 1 / timestep
+            timestep = 0.4 / timestep
         else:
             timestep = 0.1
 
