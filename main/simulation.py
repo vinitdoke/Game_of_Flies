@@ -295,3 +295,23 @@ class Simulation:
             #     total_time += time_stop-time_start
             #     i += 1
         print(f"Total time in ms: {1e3 * (time.perf_counter() - start)}")
+
+    def bench_run(self, n_steps, record=None):
+
+        if record is not None:
+            self.record_path = record
+            self.record()
+
+        start = time.perf_counter()
+        # for _ in tqdm(range(n_steps)):
+        for _ in range(n_steps):
+            # time_start = time.time()
+
+            if record is not None:
+                self.update()
+                self.record()
+                self.frame += 1
+            else:
+                self.core_step()
+
+        print(time.perf_counter() - start)
