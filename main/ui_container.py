@@ -2,6 +2,7 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 from vizman import Visualiser
 from simulation import Simulation
 from vispy.app import use_app
+import numpy as np
 
 # TODO Timestamp Connection to Simulation
 
@@ -10,8 +11,8 @@ INIT_CONFIG = {
     "seed": 434,
     "boundary": "100, 100, 100",
     "clusters": "200, 200, 200, 200",
-    "boids": "0, 0",
-    "interactions": 4,
+    "boids": "100, 100",
+    "interactions": 6,
     "timestep": 0.1,
 }
 
@@ -106,8 +107,8 @@ class ControlsWidget(QtWidgets.QWidget):
         self._boid_types_label.setAlignment(QtCore.Qt.AlignLeft)
         # self._boid_types_label.setStyleSheet('font-size: 20px; font-weight: bold')
         self._boid_types_input = QtWidgets.QLineEdit()
-        self._boid_types_input.setPlaceholderText(INIT_CONFIG["boids"])
-        self._boid_types_input.setValidator(QtGui.QIntValidator())
+        self._boid_types_input.setText(INIT_CONFIG["boids"])
+        # self._boid_types_input.setValidator(QtGui.QIntValidator())
         # self._boid_types_input.textChanged.connect(self._canvas.update_boid_types)
 
         # Interaction Matrix:
@@ -317,7 +318,10 @@ class ControlsWidget(QtWidgets.QWidget):
             self.interaction_i, self.interaction_j, new_params
         )
         clusters = [int(i) for i in self._cluster_types_input.text().split(",")]
-        self._redraw_interaction_matrix(len(clusters))
+        boids = [int(i) for i in self._boid_types_input.text().split(",")]
+        n_cluster = len(clusters) if sum(clusters) > 0 else 0
+        n_boid = len(boids) if sum(boids) > 0 else 0
+        self._redraw_interaction_matrix(n_cluster + n_boid)
         self._redraw_boundaries(event)
 
     def _redraw_boundaries(self, event):
@@ -326,22 +330,24 @@ class ControlsWidget(QtWidgets.QWidget):
 
     def _update_button_clicked(self, event):
         seed = int(self._seed_input.text())
-        clusters = [int(i) for i in self._cluster_types_input.text().split(",")]
-        # boids = [int(i) for i in self._boid_types_input.text().split(",")]
-        limits = [int(i) for i in self._boundary_limits_input.text().split(",")]
+        clusters = np.array([int(i) for i in self._cluster_types_input.text().split(",")])
+        boids = np.array([int(i) for i in self._boid_types_input.text().split(",")])
+        limits = np.array([int(i) for i in self._boundary_limits_input.text().split(",")])
 
         print("Update Button Clicked")
         print("Seed:", seed)
         print("Clusters:", clusters)
-        # print("Boids:", boids)
+        print("Boids:", boids)
         print("Limits:", limits)
 
-        new_simulation = Simulation(clusters, limits=limits, seed=seed)
+        new_simulation = Simulation(clus_types = clusters, boid_types=boids, limits=limits, seed=seed)
         # new_simulation.update()
         self._canvas.set_simulation_instance(new_simulation)
         self._canvas.draw_boundary()
 
-        self._redraw_interaction_matrix(len(clusters))
+        n_cluster = len(clusters) if sum(clusters) > 0 else 0
+        n_boid = len(boids) if sum(boids) > 0 else 0
+        self._redraw_interaction_matrix(n_cluster + n_boid)
         self.interaction_i, self.interaction_j = 0, 0
         self._display_params()
 
