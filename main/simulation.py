@@ -9,13 +9,16 @@ import os
 
 
 class Simulation:
-    def __init__(self, n_type, seed=None, limits=(100, 100, 0)) -> None:
+    def __init__(self, clus_types, boid_types, seed=None, limits=(100, 100, 0)) -> None:
         # FOR NUMPY ARRAY EXPORTING IN BLIND RUN
         self.record_path = None
         self.export_set = False
         self.seed = seed
+        self.timestep = None
 
-        self.init = initialise(n_type, seed=seed, limits=limits)  # seed 4, 10, 100, 50, 69, 35
+        all_types = np.append(clus_types, boid_types)
+
+        self.init = initialise(all_types, seed=seed, limits=limits)  # seed 4, 10, 100, 50, 69, 35
 
         self.pos_x = self.init["pos_x"]
         self.pos_y = self.init["pos_y"]
@@ -29,7 +32,7 @@ class Simulation:
         self.limits = np.array(self.init["limits"])
         self.num_particles = np.sum(self.init["n_type_array"])
         self.particle_type_index_array = np.array(self.init["particle_type_indx_array"], dtype="int32")
-        self.num_types = np.max(self.particle_type_index_array) + 1
+        self.num_types = all_types.size
         self.parameter_matrix = self.init["parameter_matrix"]
         self.r_max = self.init["max_rmax"]
         uu = 1
@@ -37,84 +40,40 @@ class Simulation:
             uu <<= 1
         self.sq_speed = np.zeros(uu)
 
-        # r_min, r_max, f_min, f_max
-        '''self.parameter_matrix[0, :, :] *= 3
-        self.parameter_matrix[0, :, :] += 5
-
-        self.parameter_matrix[1, :, :] *= 5
-        self.parameter_matrix[1, :, :] += 8
-
-        self.parameter_matrix[2, :, :] *= 3
-        self.parameter_matrix[2, :, :] -= 10
-
-        self.parameter_matrix[3, :, :] *= 12
-        self.parameter_matrix[3, :, :] -= 6
-
-        # Always attract self
-        for i in range(self.parameter_matrix[0,:,0].size):
-            self.parameter_matrix[3, i, i] = abs(self.parameter_matrix[3, i, i])
-
-        self.r_max = np.max(self.parameter_matrix[1, :, :])
-        '''
-
-        # r_max, separation, alignment, cohesion
-        '''self.parameter_matrix[0, :, :] *= 0
-        self.parameter_matrix[0, :, :] += 5
-
-        self.parameter_matrix[1, :, :] *= 0
-        self.parameter_matrix[1, :, :] += 3
-
-        self.parameter_matrix[2, :, :] *= 0
-        self.parameter_matrix[2, :, :] += 3
-
-        self.parameter_matrix[3, :, :] *= 0
-        self.parameter_matrix[3, :, :] += 0.05'''
-
-        '''self.parameter_matrix[0, :, :] *= 2
-        self.parameter_matrix[0, :, :] += 8
-
-        self.parameter_matrix[1, :, :] *= 4
-        self.parameter_matrix[1, :, :] += 6
-
-        self.parameter_matrix[2, :, :] *= 2
-        self.parameter_matrix[2, :, :] += 2
-
-        self.parameter_matrix[3, :, :] *= 0.05
-        self.parameter_matrix[3, :, :] += 0.1'''
-
-        # self.parameter_matrix[-1, :, :] = np.round(np.random.random((self.num_types, self.num_types)))
-        # self.parameter_matrix[-1, :, :] = 1
-        # self.parameter_matrix[-1, :, :] = np.array([[i==j for i in range(self.num_types)] for j in range(self.num_types)])
         self.parameter_matrix[-1, :, :] = 0
 
-        # for i in range(self.num_types):
-        #     for j in range(self.num_types):
-        #         if i > j:
-        #             self.parameter_matrix[-1, j, i] = self.parameter_matrix[-1, i, j]
+        for i in range(self.num_types):
+            for j in range(self.num_types):
+                if i >= clus_types.size and j >= clus_types.size:
+                    self.parameter_matrix[-1, i, j] = 1
+                elif i < clus_types.size and j < clus_types.size:
+                    self.parameter_matrix[-1, i, j] = 0
+                elif np.random.random() > 0.5 and i <= j:
+                    self.parameter_matrix[-1, i, j] = 1
+                if i > j:
+                    self.parameter_matrix[-1, i, j] = self.parameter_matrix[-1, j, i]
 
         boid = self.parameter_matrix[-1, :, :] == 1
         clus = self.parameter_matrix[-1, :, :] == 0
         print(boid)
-
+        # r_max, separation, alignment, cohesion
         self.parameter_matrix[0][boid] *= 2
         self.parameter_matrix[0][boid] += 12
 
         self.parameter_matrix[1][boid] *= 4
         self.parameter_matrix[1][boid] += 2
 
-        self.parameter_matrix[2][boid] *= -2
-        self.parameter_matrix[2][boid] -= 5
-        f = 12
-        self.parameter_matrix[3][boid] *= -0.1
-        self.parameter_matrix[3][boid] -= 0.1
-        self.parameter_matrix[3][boid] *= f
+        self.parameter_matrix[2][boid] *= 2
+        self.parameter_matrix[2][boid] += 2
+        
+        self.parameter_matrix[3][boid] *= 0.1
+        self.parameter_matrix[3][boid] -= 0.05
 
         for i in range(self.parameter_matrix[0,:,0].size):
             if self.parameter_matrix[-1, i, i] == 1:
-                self.parameter_matrix[3, i, i] = abs(self.parameter_matrix[3, i, i]) / f
-                self.parameter_matrix[2, i, i] = abs(self.parameter_matrix[2, i, i]) / 2
+                self.parameter_matrix[3, i, i] = abs(self.parameter_matrix[3, i, i])
                 
-
+        # r_min, r_max, f_min, f_max
         self.parameter_matrix[0][clus] *= 3
         self.parameter_matrix[0][clus] += 5
 
@@ -219,7 +178,7 @@ class Simulation:
                   self.d_boid_vel_x, self.d_boid_vel_y, self.d_boid_vel_z, self.d_boid_counts,
                   self.d_sq_speed, self.d_bin_neighbours, self.d_particle_bins,
                   self.d_particle_indices, self.d_particle_bin_starts, self.d_particle_bin_counts,
-                  self.blocks, self.threads, timestep=None
+                  self.blocks, self.threads, timestep=self.timestep
                   )
         '''self.d_acc_x.copy_to_host(self.acc_x)
         self.d_acc_y.copy_to_host(self.acc_y)
