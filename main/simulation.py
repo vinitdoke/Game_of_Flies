@@ -16,7 +16,13 @@ class Simulation:
         self.seed = seed
         self.timestep = None
 
-        all_types = np.array(np.append(clus_types, boid_types), dtype=np.int32)
+        # all_types = np.array(np.append(clus_types, boid_types), dtype=np.int32)
+        if sum(clus_types) == 0:
+            all_types = np.array(boid_types, dtype=np.int32)
+        elif sum(boid_types) == 0:
+            all_types = np.array(clus_types, dtype=np.int32)
+        else:
+            all_types = np.array(np.append(clus_types, boid_types), dtype=np.int32)
 
         self.init = initialise(all_types, seed=seed, limits=limits)  # seed 4, 10, 100, 50, 69, 35
 
