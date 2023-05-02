@@ -76,3 +76,17 @@ class Simulation:
             # else:
             #     total_time += time_stop-time_start
             #     i += 1
+
+    def bench_run(self, n_steps):
+        # total_time = 0
+        # i = 1
+        # frame_rate_window = 5
+        start = time.perf_counter()
+        for _ in range(n_steps):
+            # time_start = time.time()
+            integrate(self.pos_x, self.pos_y, self.pos_z, self.vel_x, self.vel_y,
+                  self.vel_z,
+                  self.limits, self.r_max, self.num_particles,
+                  self.parameter_matrix, self.particle_type_index_array,
+                  self.acc_x, self.acc_y, self.acc_z)
+        print(time.perf_counter()-start)
