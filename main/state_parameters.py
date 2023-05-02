@@ -43,7 +43,6 @@ def initialise(
     buffer = 0  # extra space for adding particles
     #total_len = len(n_type) * max_particle + buffer
     total_given_part = int(sum(n_type))
-    print(total_given_part)
 
     total_len = int(total_given_part)
 
