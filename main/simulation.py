@@ -17,7 +17,6 @@ class Simulation:
         self.timestep = None
 
         all_types = np.array(np.append(clus_types, boid_types), dtype=np.int32)
-        print(all_types)
 
         self.init = initialise(all_types, seed=seed, limits=limits)  # seed 4, 10, 100, 50, 69, 35
 
