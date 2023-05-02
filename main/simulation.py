@@ -61,7 +61,7 @@ class Simulation:
 
         boid = self.parameter_matrix[-1, :, :] == 1
         clus = self.parameter_matrix[-1, :, :] == 0
-        print(boid)
+        # print(boid)
         # r_max, separation, alignment, cohesion
         self.parameter_matrix[0][boid] *= 2
         self.parameter_matrix[0][boid] += 12
