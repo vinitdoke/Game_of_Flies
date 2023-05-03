@@ -34,18 +34,14 @@ python hive.py -b -r "output_directory"
 ---
 ## Documentation
 
-Table :
-
-| File | Description |
+| File | Link |
 | --- | --- |
-| Project Proposal | --- |
-| Project Update 1 | --- |
-| Project Update 2 | --- |
-| Project Update 3 | --- |
-| Final Report     | --- |
-
-
-
+| Project Proposal | [Project Proposal](https://github.com/vinitdoke/Game_of_Flies/blob/cuda_3D/Documentation/AE6102_ProjectProposal_Team_Beekeepers.pdf)|
+| Project Update 1 | [Update 1](https://github.com/vinitdoke/Game_of_Flies/blob/cuda_3D/Documentation/Project_Update_1.pdf) |
+| Project Update 2 | [Update 2](https://github.com/vinitdoke/Game_of_Flies/blob/cuda_3D/Documentation/Project_Update_2.pdf) |
+| Project Update 3 | On Moodle |
+| Final Report     | [Final Report](https://github.com/vinitdoke/Game_of_Flies/blob/cuda_3D/Documentation/ae6102_project_report.pdf) |
+| Final Presentation | TBD|
 
 ---
 ## File Structure
