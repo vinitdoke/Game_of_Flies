@@ -13,7 +13,7 @@ import os
 class Visualiser:
     def __init__(self, size=(800, 600), filepath=None):
 
-        self.canvas = vispy.scene.SceneCanvas(keys="interactive", show=False, size=size)
+        self.canvas = vispy.scene.SceneCanvas(keys="interactive", bgcolor='w', show=False, size=size)
         self.view = self.canvas.central_widget.add_view()
 
         self.scatters = []
@@ -181,7 +181,8 @@ class Visualiser:
                 width=limits[0],
                 height=limits[1],
                 border_color=(1, 1, 1, 0.5),
-                color=(1, 1, 1, 0),
+                # color=(1, 1, 1, 0),
+                color=(0, 0, 0, 0),
                 parent=self.view.scene,
             )
         else:
@@ -208,7 +209,11 @@ class Visualiser:
                 ]
             )
             self.boundary = visuals.Line(
-                pos=pts, color=(1, 1, 1, 0.5), width=1, parent=self.view.scene
+                pos=pts,
+                # color=(1, 1, 1, 0.5),
+                color=(0, 0, 0, 0.5),
+                width=1,
+                parent=self.view.scene
             )
         print("Boundary drawn")
 
