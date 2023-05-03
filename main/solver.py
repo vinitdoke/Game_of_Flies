@@ -193,7 +193,7 @@ def bench_main(n_type_arr):
     # Initialise the state parameters
     # n_type_arr = np.array([5000, 5000, 5000, 5000])
 
-    init = initialise(n_type_arr, seed=434, limits=[500, 500, 0])
+    init = initialise(n_type_arr, seed=434, limits=[100, 100, 0])
 
     pos_x = init["pos_x"]
     pos_y = init["pos_y"]
@@ -240,5 +240,5 @@ if __name__ == '__main__':
     # main()
     parser = argparse.ArgumentParser()
     parser.add_argument('-nt', '--ntype', type=int, nargs='+', default=np.array([100, 100]), help='num of particles')
-    n_type_arr = argparse.arg.ntype
+    n_type_arr = parser.parse_args().ntype
     bench_main(n_type_arr)
