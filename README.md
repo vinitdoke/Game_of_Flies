@@ -1,4 +1,4 @@
-# Game_of_Flies
+# :honeybee: Game_of_Flies
 AE6102 : Parallel Scientific Computing and Visualisation
 Course Project
 
