@@ -303,17 +303,20 @@ class ControlsWidget(QtWidgets.QWidget):
             ]
             for i in range(4):
                 self._params_inputs[i].setText(f"{relevant_params[i]:.2f}")
-            
-            if self._canvas.simulation.parameter_matrix[-1, self.interaction_i, self.interaction_j]:
+
+            if self._canvas.simulation.parameter_matrix[
+                -1, self.interaction_i, self.interaction_j
+            ]:
                 self._params_dropdown.setCurrentIndex(0)
             else:
                 self._params_dropdown.setCurrentIndex(1)
 
-
     def _update_params_button_clicked(self, event):
         print("Update Params Button Clicked")
         new_params = [float(i.text()) for i in self._params_inputs]
-        new_params.append(1) if self._params_dropdown.currentIndex() == 0 else new_params.append(0)
+        new_params.append(
+            1
+        ) if self._params_dropdown.currentIndex() == 0 else new_params.append(0)
         print("New Params:", new_params)
         self._canvas.simulation.update_parameter_matrix(
             self.interaction_i, self.interaction_j, new_params
@@ -331,9 +334,13 @@ class ControlsWidget(QtWidgets.QWidget):
 
     def _update_button_clicked(self, event):
         seed = int(self._seed_input.text())
-        clusters = np.array([int(i) for i in self._cluster_types_input.text().split(",")])
+        clusters = np.array(
+            [int(i) for i in self._cluster_types_input.text().split(",")]
+        )
         boids = np.array([int(i) for i in self._boid_types_input.text().split(",")])
-        limits = np.array([int(i) for i in self._boundary_limits_input.text().split(",")])
+        limits = np.array(
+            [int(i) for i in self._boundary_limits_input.text().split(",")]
+        )
 
         print("Update Button Clicked")
         print("Seed:", seed)
@@ -341,7 +348,9 @@ class ControlsWidget(QtWidgets.QWidget):
         print("Boids:", boids)
         print("Limits:", limits)
 
-        new_simulation = Simulation(clus_types = clusters, boid_types=boids, limits=limits, seed=seed)
+        new_simulation = Simulation(
+            clus_types=clusters, boid_types=boids, limits=limits, seed=seed
+        )
         # new_simulation.update()
         self._canvas.set_simulation_instance(new_simulation)
         self._canvas.draw_boundary()

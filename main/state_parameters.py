@@ -3,30 +3,29 @@ from numpy import random
 
 
 def rand_param_matrix(
-        n_type: np.ndarray,
-        force_type: str = 'Clusters',
-        max_param: int = 4,
-        seed: int = None
+    n_type: np.ndarray,
+    force_type: str = "Clusters",
+    max_param: int = 4,
+    seed: int = None,
 ):
     n = len(n_type)
     n_sq = n * n
     param_matrix = np.zeros((max_param + 1, n, n))
 
     # last matrix distinguishes the type of interaction
-    if force_type == 'Clusters':
+    if force_type == "Clusters":
         param_matrix[-1][:][:] = 0
 
     # r_min, r_max, f_min, f_max
     if seed is not None:
         random.seed(seed)
     raw_data = random.rand(n * n * max_param)
-    raw_data[:2 * n_sq].sort()
-    random.shuffle(raw_data[: n_sq])
-    random.shuffle(raw_data[n_sq: 2 * n_sq])
+    raw_data[: 2 * n_sq].sort()
+    random.shuffle(raw_data[:n_sq])
+    random.shuffle(raw_data[n_sq : 2 * n_sq])
 
     for i in range(len(param_matrix) - 1):
-        param_matrix[i][:][:] = raw_data[i * n_sq: i * n_sq + n_sq].reshape(
-            (n, n))
+        param_matrix[i][:][:] = raw_data[i * n_sq : i * n_sq + n_sq].reshape((n, n))
 
     param_matrix[2][:][:] = -param_matrix[2][:][:]
     r_rmax = np.max(param_matrix[3][:][:])
@@ -34,14 +33,10 @@ def rand_param_matrix(
     return param_matrix, r_rmax
 
 
-def initialise(
-        n_type: np.ndarray,
-        seed: int = None,
-        limits: tuple = (100, 100, 0)
-):
+def initialise(n_type: np.ndarray, seed: int = None, limits: tuple = (100, 100, 0)):
     max_particle = 10  # max particle of a single kind
     buffer = 0  # extra space for adding particles
-    #total_len = len(n_type) * max_particle + buffer
+    # total_len = len(n_type) * max_particle + buffer
     total_given_part = int(sum(n_type))
 
     total_len = int(total_given_part)
@@ -75,7 +70,7 @@ def initialise(
     part_type_indx_arr = np.ones(total_len) * np.nan
     s = len(n_type) - 1
     for i in range(len(n_type)):
-        trick_sum = int(sum(n_type[:len(n_type) - i]))
+        trick_sum = int(sum(n_type[: len(n_type) - i]))
         part_type_indx_arr[:trick_sum] = s
         s -= 1
 
@@ -96,11 +91,11 @@ def initialise(
         "particle_type_indx_array": part_type_indx_arr,
         "max_particle_per_type": max_particle,
         "parameter_matrix": param_matrix,
-        "max_rmax": max_rmax
+        "max_rmax": max_rmax,
     }
 
     return state_variable_dict
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print(initialise([10, 6, 7]))

@@ -168,7 +168,7 @@ class Visualiser:
     def draw_boundary(self, limits=None):
         if self.boundary is not None:
             self.boundary.parent = None
-        
+
         if limits is None:
             if self.simulation is not None:
                 limits = self.simulation.limits
@@ -211,8 +211,8 @@ class Visualiser:
                 pos=pts, color=(1, 1, 1, 0.5), width=1, parent=self.view.scene
             )
         print("Boundary drawn")
-    
-    def rotate3DCamera(self, angle = 0.1):
+
+    def rotate3DCamera(self, angle=0.1):
         # self.view.camera.transform.rotate(angle, (0, 1, 0))
         # self.view.camera.transform.rotate(angle, (1, 0, 0))
         if self.view.camera is not TurntableCamera:
