@@ -56,16 +56,23 @@ python hive.py -b -r "output_directory"
 C:.
 │   .gitignore
 │   README.md
-│
-├───discussion
-│   │   architechture.pdf
-│   │   clusters_force_profile.pdf
-│   │   Untitled-1.ipynb
+│   requirements.txt
+│           
+├───Documentation
+│   │   AE6102_ProjectProposal_Team_Beekeepers.pdf
+│   │   ae6102_project_report.pdf
+│   │   Project_Update_1.pdf
+│   │   Project_Update_2.pdf
 │   │   
-│   └───archive
-│           architechture.xopp
-│           clusters_force_profile.xopp
-│
+│   └───discussion
+│       │   architechture.pdf
+│       │   clusters_force_profile.pdf
+│       │   Untitled-1.ipynb
+│       │   
+│       └───archive
+│               architechture.xopp
+│               clusters_force_profile.xopp
+│               
 ├───main
 │   │   acceleration_updater.py
 │   │   force_profiles.py
@@ -78,8 +85,7 @@ C:.
 │   │   state_parameters.py
 │   │   ui_container.py
 │   │   vizman.py
-│   │   
-│   └───outputs
+|   └───outputs
 │           
 ├───results_and_benchmarks
 │       jit_vs_list.png
@@ -90,4 +96,5 @@ C:.
         vid.npz
         vispy_anim_check.py
         vispy_check.py
+
 ```
