@@ -16,7 +16,7 @@ git clone https://github.com/vinitdoke/Game_of_Flies.git
 2. Install the requirements :
 
 
-CUDA is required for the simulation to run.
+`CUDA` is required for the simulation to run.
 ```
 pip install -r requirements.txt
 ```
@@ -31,6 +31,13 @@ python hive.py -i
 ```
 python hive.py -b -r "output_directory"
 ```
+### Demo Videos
+|Video|Link|
+|---|---|
+|Clusters 2D| [Link](https://youtu.be/mEeR2FnSDng)|
+|Clusters and Boids 3D| [Link](https://youtu.be/gRxERbZKX5M)|
+|GUI|[Link](https://youtu.be/PulBwRWKz0Q) |
+
 ---
 ## Documentation
 
