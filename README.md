@@ -8,6 +8,15 @@ Course Project
 2. Tanyut Sharma (190100128)
 3. Mihir Agre (190260030)
 ---
+### Abstract
+``Time evolution of a particle-system based on two interaction rulesets : Boids and clusters, is simulated
+via numba CUDA, numba parallel, and numba serial implementations in python. Visualisation is done
+via VisPy-based 2D and 3D widgets embedded inside a PyQt5-based GUI for interactivity. A pathway
+to pre-compute the solution (bypassing the GUI) and visualise later, using either a live VisPy widget or
+rendering to a video is provided. Parallelization of binning (both 2D and 3D) for reducing time-complexity
+to O(n), support for multiple interactive-species of particles, and periodic boundary conditions are also
+implemented.``
+___
 ## Setup
 1. Clone the repository
 ```
