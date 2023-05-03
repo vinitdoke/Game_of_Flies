@@ -273,8 +273,8 @@ class Simulation:
             self.record()
 
         start = time.perf_counter()
-        # for _ in tqdm(range(n_steps)):
-        for _ in range(n_steps):
+        for _ in tqdm(range(n_steps)):
+        # for _ in range(n_steps):
             # time_start = time.time()
 
             if record is not None:

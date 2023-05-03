@@ -89,7 +89,7 @@ class Visualiser:
                     center=(limits[0] / 2, limits[1] / 2, limits[2] / 2),
                     fov=60,
                     distance=1.5 * max(limits),
-                    elevation=30,
+                    elevation=0,
                 )
                 self.view.camera = new_cam
             else:
@@ -141,6 +141,7 @@ class Visualiser:
             face_color=self.colour_array,
             size=5,
         )
+        self.rotate3DCamera()
 
     def blind_update(self, output_data):
         self.scatters[0].set_data(
@@ -149,6 +150,7 @@ class Visualiser:
             face_color=self.colour_array,
             size=5,
         )
+        self.rotate3DCamera()
 
     def update_from_file(self, _):
         if self.image_idx == len(self.list_of_frames):
@@ -209,6 +211,12 @@ class Visualiser:
                 pos=pts, color=(1, 1, 1, 0.5), width=1, parent=self.view.scene
             )
         print("Boundary drawn")
+    
+    def rotate3DCamera(self, angle = 0.1):
+        # self.view.camera.transform.rotate(angle, (0, 1, 0))
+        # self.view.camera.transform.rotate(angle, (1, 0, 0))
+        if self.view.camera is not TurntableCamera:
+            self.view.camera.orbit(angle, 0)
 
     def start(self):
         if not self.canvas_shown:

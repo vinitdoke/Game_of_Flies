@@ -5,6 +5,7 @@ from vispy.app import use_app
 import numpy as np
 
 # TODO Timestamp Connection to Simulation
+# TODO Live Boundary Update ?
 
 # CANVAS_SIZE = (800, 600)
 INIT_CONFIG = {
