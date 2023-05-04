@@ -11,7 +11,7 @@ def parse():
     parser = ArgumentParser()
     parser.add_argument('-b', '--blind', action='store_true', default=False,
                         help='Run simulation without visualisation')
-    parser.add_argument('-i', '--ui', action='store_true', default=False,
+    parser.add_argument('-i', '--ui', action='store_true', default=not False,
                         help='Run simulation with UI')
     parser.add_argument('-r', '--record', type=str, default=None,
                         help='Path to directory to store simulation')
@@ -40,8 +40,8 @@ if __name__ == "__main__":
             app.run()
         else:
             
-            clus_array = np.array([2000]*4)  # max 9 types due to color_list
-            boid_array = np.array([2000]*3)
+            clus_array = np.array([2000]*0)  # max 9 types due to color_list
+            boid_array = np.array([500]*3)
             simulation = Simulation(clus_array, boid_array, limits=(100, 100, 0), seed=434)
             simulation.update()  # dummy call to avoid frame freeze on first update
             # seed 4, 10, 100, 50, 69, 35, 434, 954, 1039

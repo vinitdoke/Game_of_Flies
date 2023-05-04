@@ -16,6 +16,10 @@ class Simulation:
         self.seed = seed
         self.timestep = None
 
+        if len(clus_types) == 1:
+            if clus_types[0] == 0:
+                clus_types = np.array([])
+
         # all_types = np.array(np.append(clus_types, boid_types), dtype=np.int32)
         if sum(clus_types) == 0:
             all_types = np.array(boid_types, dtype=np.int32)
