@@ -13,7 +13,7 @@ import os
 class Visualiser:
     def __init__(self, size=(800, 600), filepath=None):
 
-        self.canvas = vispy.scene.SceneCanvas(keys="interactive", show=False, size=size)
+        self.canvas = vispy.scene.SceneCanvas(keys="interactive", bgcolor='w', show=False, size=size)
         self.view = self.canvas.central_widget.add_view()
 
         self.scatters = []
@@ -89,7 +89,7 @@ class Visualiser:
                     center=(limits[0] / 2, limits[1] / 2, limits[2] / 2),
                     fov=60,
                     distance=1.5 * max(limits),
-                    elevation=30,
+                    elevation=0,
                 )
                 self.view.camera = new_cam
             else:
@@ -141,6 +141,7 @@ class Visualiser:
             face_color=self.colour_array,
             size=5,
         )
+        self.rotate3DCamera()
 
     def blind_update(self, output_data):
         self.scatters[0].set_data(
@@ -149,6 +150,7 @@ class Visualiser:
             face_color=self.colour_array,
             size=5,
         )
+        self.rotate3DCamera()
 
     def update_from_file(self, _):
         if self.image_idx == len(self.list_of_frames):
@@ -166,7 +168,7 @@ class Visualiser:
     def draw_boundary(self, limits=None):
         if self.boundary is not None:
             self.boundary.parent = None
-        
+
         if limits is None:
             if self.simulation is not None:
                 limits = self.simulation.limits
@@ -179,7 +181,8 @@ class Visualiser:
                 width=limits[0],
                 height=limits[1],
                 border_color=(1, 1, 1, 0.5),
-                color=(1, 1, 1, 0),
+                # color=(1, 1, 1, 0),
+                color=(0, 0, 0, 0),
                 parent=self.view.scene,
             )
         else:
@@ -206,9 +209,19 @@ class Visualiser:
                 ]
             )
             self.boundary = visuals.Line(
-                pos=pts, color=(1, 1, 1, 0.5), width=1, parent=self.view.scene
+                pos=pts,
+                # color=(1, 1, 1, 0.5),
+                color=(0, 0, 0, 0.5),
+                width=1,
+                parent=self.view.scene
             )
         print("Boundary drawn")
+
+    def rotate3DCamera(self, angle=0.1):
+        # self.view.camera.transform.rotate(angle, (0, 1, 0))
+        # self.view.camera.transform.rotate(angle, (1, 0, 0))
+        if self.view.camera is not TurntableCamera:
+            self.view.camera.orbit(angle, 0)
 
     def start(self):
         if not self.canvas_shown:

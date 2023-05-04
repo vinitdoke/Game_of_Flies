@@ -1,0 +1,9 @@
+imageio
+matplotlib
+numba
+numpy
+PyQt5
+PyQt5_sip
+tqdm
+vispy
+matplotlib

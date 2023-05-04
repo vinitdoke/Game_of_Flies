@@ -28,7 +28,9 @@ class Simulation:
         else:
             all_types = np.array(np.append(clus_types, boid_types), dtype=np.int32)
 
-        self.init = initialise(all_types, seed=seed, limits=limits)  # seed 4, 10, 100, 50, 69, 35
+        self.init = initialise(
+            all_types, seed=seed, limits=limits
+        )  # seed 4, 10, 100, 50, 69, 35
 
         self.pos_x = self.init["pos_x"]
         self.pos_y = self.init["pos_y"]
@@ -41,7 +43,9 @@ class Simulation:
         self.acc_z = self.init["acc_z"]
         self.limits = np.array(self.init["limits"])
         self.num_particles = np.sum(self.init["n_type_array"])
-        self.particle_type_index_array = np.array(self.init["particle_type_indx_array"], dtype="int32")
+        self.particle_type_index_array = np.array(
+            self.init["particle_type_indx_array"], dtype="int32"
+        )
         self.num_types = all_types.size
         self.parameter_matrix = self.init["parameter_matrix"]
         self.r_max = self.init["max_rmax"]
@@ -65,7 +69,7 @@ class Simulation:
 
         boid = self.parameter_matrix[-1, :, :] == 1
         clus = self.parameter_matrix[-1, :, :] == 0
-        print(boid)
+        # print(boid)
         # r_max, separation, alignment, cohesion
         self.parameter_matrix[0][boid] *= 2
         self.parameter_matrix[0][boid] += 12
@@ -75,14 +79,14 @@ class Simulation:
 
         self.parameter_matrix[2][boid] *= 2
         self.parameter_matrix[2][boid] += 2
-        
+
         self.parameter_matrix[3][boid] *= 0.1
         self.parameter_matrix[3][boid] -= 0.05
 
-        for i in range(self.parameter_matrix[0,:,0].size):
+        for i in range(self.parameter_matrix[0, :, 0].size):
             if self.parameter_matrix[-1, i, i] == 1:
                 self.parameter_matrix[3, i, i] = abs(self.parameter_matrix[3, i, i])
-                
+
         # r_min, r_max, f_min, f_max
         self.parameter_matrix[0][clus] *= 3
         self.parameter_matrix[0][clus] += 5
@@ -114,14 +118,22 @@ class Simulation:
 
         if self.limits[2] == 0:
             self.num_bin_z = 0
-            self.bin_neighbours = np.zeros((self.num_bin_x * self.num_bin_y, 5), dtype=np.int32)
-            set_bin_neighbours(self.num_bin_x, self.num_bin_y, self.num_bin_z, self.bin_neighbours)
+            self.bin_neighbours = np.zeros(
+                (self.num_bin_x * self.num_bin_y, 5), dtype=np.int32
+            )
+            set_bin_neighbours(
+                self.num_bin_x, self.num_bin_y, self.num_bin_z, self.bin_neighbours
+            )
             i = 1
             while i < self.num_bin_x * self.num_bin_y:
                 i *= 2
         else:
-            self.bin_neighbours = np.zeros((self.num_bin_x * self.num_bin_y * self.num_bin_z, 14), dtype=np.int32)
-            set_bin_neighbours(self.num_bin_x, self.num_bin_y, self.num_bin_z, self.bin_neighbours)
+            self.bin_neighbours = np.zeros(
+                (self.num_bin_x * self.num_bin_y * self.num_bin_z, 14), dtype=np.int32
+            )
+            set_bin_neighbours(
+                self.num_bin_x, self.num_bin_y, self.num_bin_z, self.bin_neighbours
+            )
             i = 1
             while i < self.num_bin_x * self.num_bin_y * self.num_bin_z:
                 i *= 2
@@ -129,12 +141,16 @@ class Simulation:
         self.particle_bin_counts = np.zeros(i, dtype=np.int32)
         self.num_bins = self.particle_bin_counts.size
 
-        self.particle_bin_starts = np.zeros_like(self.particle_bin_counts, dtype=np.int32)
+        self.particle_bin_starts = np.zeros_like(
+            self.particle_bin_counts, dtype=np.int32
+        )
         self.particle_bins = np.zeros_like(self.pos_x, dtype=np.int32)
         self.particle_indices = np.zeros_like(self.pos_x, dtype=np.int32)
         self.bin_offsets = np.zeros_like(self.pos_x, dtype=np.int32)
 
-        self.boid_acc_x = np.zeros(self.num_particles * self.num_types, dtype=np.float32)
+        self.boid_acc_x = np.zeros(
+            self.num_particles * self.num_types, dtype=np.float32
+        )
         self.boid_acc_y = np.zeros_like(self.boid_acc_x, dtype=np.float32)
         self.boid_acc_z = np.zeros_like(self.boid_acc_x, dtype=np.float32)
         self.boid_vel_x = np.zeros_like(self.boid_acc_x, dtype=np.float32)
@@ -175,30 +191,68 @@ class Simulation:
         self.output = np.zeros((self.num_particles, 3))
 
     def core_step(self):
-        setup_bins(self.d_pos_x, self.d_pos_y, self.d_pos_z,
-                   self.num_bin_x, self.num_bin_y, self.num_bin_z, self.bin_size_x, self.bin_size_y, self.bin_size_z,
-                   self.num_bins, self.num_particles, self.d_particle_bins, self.d_particle_bin_counts,
-                   self.d_bin_offsets,
-                   self.d_particle_bin_starts, self.d_particle_indices, self.blocks, self.threads
-                   )
-        integrate(self.d_pos_x, self.d_pos_y, self.d_pos_z, self.d_vel_x, self.d_vel_y, self.d_vel_z,
-                  self.limits, self.r_max, self.num_particles,
-                  self.d_parameter_matrix, self.d_particle_tia, self.d_acc_x, self.d_acc_y, self.d_acc_z,
-                  self.num_types, self.d_boid_acc_x, self.d_boid_acc_y, self.d_boid_acc_z,
-                  self.d_boid_vel_x, self.d_boid_vel_y, self.d_boid_vel_z, self.d_boid_counts,
-                  self.d_sq_speed, self.d_bin_neighbours, self.d_particle_bins,
-                  self.d_particle_indices, self.d_particle_bin_starts, self.d_particle_bin_counts,
-                  self.blocks, self.threads, timestep=self.timestep
-                  )
-        '''self.d_acc_x.copy_to_host(self.acc_x)
+        setup_bins(
+            self.d_pos_x,
+            self.d_pos_y,
+            self.d_pos_z,
+            self.num_bin_x,
+            self.num_bin_y,
+            self.num_bin_z,
+            self.bin_size_x,
+            self.bin_size_y,
+            self.bin_size_z,
+            self.num_bins,
+            self.num_particles,
+            self.d_particle_bins,
+            self.d_particle_bin_counts,
+            self.d_bin_offsets,
+            self.d_particle_bin_starts,
+            self.d_particle_indices,
+            self.blocks,
+            self.threads,
+        )
+        integrate(
+            self.d_pos_x,
+            self.d_pos_y,
+            self.d_pos_z,
+            self.d_vel_x,
+            self.d_vel_y,
+            self.d_vel_z,
+            self.limits,
+            self.r_max,
+            self.num_particles,
+            self.d_parameter_matrix,
+            self.d_particle_tia,
+            self.d_acc_x,
+            self.d_acc_y,
+            self.d_acc_z,
+            self.num_types,
+            self.d_boid_acc_x,
+            self.d_boid_acc_y,
+            self.d_boid_acc_z,
+            self.d_boid_vel_x,
+            self.d_boid_vel_y,
+            self.d_boid_vel_z,
+            self.d_boid_counts,
+            self.d_sq_speed,
+            self.d_bin_neighbours,
+            self.d_particle_bins,
+            self.d_particle_indices,
+            self.d_particle_bin_starts,
+            self.d_particle_bin_counts,
+            self.blocks,
+            self.threads,
+            timestep=self.timestep,
+        )
+        """self.d_acc_x.copy_to_host(self.acc_x)
         self.d_acc_y.copy_to_host(self.acc_y)
         self.d_particle_bins.copy_to_host(self.particle_bins)
         self.d_particle_bin_counts.copy_to_host(self.particle_bin_counts)
         self.d_particle_bin_starts.copy_to_host(self.particle_bin_starts)
-        self.d_particle_indices.copy_to_host(self.particle_indices)'''
+        self.d_particle_indices.copy_to_host(self.particle_indices)"""
 
         # For debugging, do not remove:
-        '''start_test = np.cumsum(self.particle_bin_counts)
+        """start_test = np.cumsum(self.particle_bin_counts)
         print(np.allclose(start_test[:-1], self.particle_bin_starts[1:]))
         i = 0
         while start_test[i] == self.particle_bin_starts[i+1]:
@@ -206,9 +260,9 @@ class Simulation:
         print(f"i:{i} len:{len(self.particle_bin_starts)}")
         print(self.particle_bin_counts)
         #print(start_test)
-        print(self.particle_bin_starts)'''
+        print(self.particle_bin_starts)"""
 
-        '''print("\n\n\n__________________________________________")
+        """print("\n\n\n__________________________________________")
         for tb in range(5):
             print(f"START--  {tb}")
             bin = self.particle_bins[tb]
@@ -232,11 +286,11 @@ class Simulation:
             b2 = self.particle_bin_counts[a2[:c, 0]]
             print(f"b:  {b}   sum b:  {np.sum(b)}")
             print(f"b2:  {b2} sum b2:  {np.sum(b2) - self.particle_bin_counts[self.particle_bins[tb]]}")
-            print("END--\n\n")'''
+            print("END--\n\n")"""
 
     def update_parameter_matrix(self, i, j, params):
-            self.parameter_matrix[:5, i, j] = params
-            self.d_parameter_matrix = cuda.to_device(self.parameter_matrix)
+        self.parameter_matrix[:5, i, j] = params
+        self.d_parameter_matrix = cuda.to_device(self.parameter_matrix)
 
     def update(self):
         self.core_step()
@@ -245,27 +299,31 @@ class Simulation:
         self.d_pos_y.copy_to_host(self.pos_y)
         self.d_pos_z.copy_to_host(self.pos_z)
 
-        self.output[:, 0] = self.pos_x[:self.num_particles]
-        self.output[:, 1] = self.pos_y[:self.num_particles]
-        self.output[:, 2] = self.pos_z[:self.num_particles]
+        self.output[:, 0] = self.pos_x[: self.num_particles]
+        self.output[:, 1] = self.pos_y[: self.num_particles]
+        self.output[:, 2] = self.pos_z[: self.num_particles]
 
     def record(self):
         if not self.export_set:
             os.mkdir(self.record_path)
             os.mkdir(os.path.join(self.record_path, "frames"))
 
-            np.savez(os.path.join(self.record_path, "state.npz"),
-                     type_array=self.particle_type_index_array,
-                     limits=self.limits,
-                     parameter_matrix=self.parameter_matrix,
-                     num_particles=self.num_particles,
-                     seed=self.seed)
+            np.savez(
+                os.path.join(self.record_path, "state.npz"),
+                type_array=self.particle_type_index_array,
+                limits=self.limits,
+                parameter_matrix=self.parameter_matrix,
+                num_particles=self.num_particles,
+                seed=self.seed,
+            )
 
             self.frame = 0
             self.export_set = True
 
         # np.save(self.record_path + "/frames/" + f"{self.frame:05}", self.output)
-        np.save(os.path.join(self.record_path, "frames", f"{self.frame:05}"), self.output)
+        np.save(
+            os.path.join(self.record_path, "frames", f"{self.frame:05}"), self.output
+        )
 
     def blind_run(self, n_steps, record=None):
         # total_time = 0
@@ -277,8 +335,8 @@ class Simulation:
             self.record()
 
         start = time.perf_counter()
-        # for _ in tqdm(range(n_steps)):
-        for _ in range(n_steps):
+        for _ in tqdm(range(n_steps)):
+            # for _ in range(n_steps):
             # time_start = time.time()
 
             if record is not None:
@@ -299,3 +357,23 @@ class Simulation:
             #     total_time += time_stop-time_start
             #     i += 1
         print(f"Total time in ms: {1e3 * (time.perf_counter() - start)}")
+
+    def bench_run(self, n_steps, record=None):
+
+        if record is not None:
+            self.record_path = record
+            self.record()
+
+        start = time.perf_counter()
+        # for _ in tqdm(range(n_steps)):
+        for _ in range(n_steps):
+            # time_start = time.time()
+
+            if record is not None:
+                self.update()
+                self.record()
+                self.frame += 1
+            else:
+                self.core_step()
+
+        print(time.perf_counter() - start)

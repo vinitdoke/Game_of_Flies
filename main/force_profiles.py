@@ -20,7 +20,7 @@ def _benchmark(sample_input):
     """
     :return: None
     """
-    n_vals = [10 ** i for i in range(1, 7)]
+    n_vals = [10**i for i in range(1, 7)]
     timings_mof = []
     timings_jit = []
     i, j = 1, 1
@@ -44,11 +44,11 @@ def _benchmark(sample_input):
         end = perf_counter()
         timings_jit.append(end - start)
 
-    plt.loglog(n_vals, timings_mof, '-o', label='mof')
-    plt.loglog(n_vals, timings_jit, '-o', label='jit')
-    plt.title('Jitted Functions : Individual v/s List')
-    plt.xlabel('n')
-    plt.ylabel('time')
+    plt.loglog(n_vals, timings_mof, "-o", label="mof")
+    plt.loglog(n_vals, timings_jit, "-o", label="jit")
+    plt.title("Jitted Functions : Individual v/s List")
+    plt.xlabel("n")
+    plt.ylabel("time")
     plt.legend()
     plt.grid()
     plt.show()
@@ -67,10 +67,10 @@ def _plot_force_function(force_function, r_max, ij):
     """
     x = np.linspace(0, r_max, 1000)
     y = np.array([force_function(i) for i in x])
-    plt.title(f'{ij}')
+    plt.title(f"{ij}")
     plt.plot(x, y)
     plt.grid()
-    plt.savefig(f'force_profile_{ij}.png')
+    plt.savefig(f"force_profile_{ij}.png")
     plt.clf()
 
 
@@ -113,8 +113,9 @@ def all_force_functions(profile_name: str, *params):
             matrix_of_functions.append([])
             for j in range(n_types):
                 input_params = params[i][j]
-                matrix_of_functions[i].append(wrap_clusters_force_distance(
-                    *input_params))
+                matrix_of_functions[i].append(
+                    wrap_clusters_force_distance(*input_params)
+                )
 
     elif profile_name == "cluster_position_input":
         # n_types = len(params)
@@ -142,11 +143,9 @@ def general_force_function(profile_type: int, input_vect: np.ndarray, args: np.n
         if 0 <= input_vect[0] < args[0]:
             return -args[2] / args[0] * input_vect[0] + args[2]
         elif args[0] <= input_vect[0] < (args[0] + args[1]) / 2:
-            return 2 * args[3] / (args[1] - args[0]) * (input_vect[0] -
-                                                        args[0])
+            return 2 * args[3] / (args[1] - args[0]) * (input_vect[0] - args[0])
         elif (args[0] + args[1]) / 2 <= input_vect[0] < args[1]:
-            return 2 * args[3] / (args[1] - args[0]) * (args[1] -
-                                                        input_vect[0])
+            return 2 * args[3] / (args[1] - args[0]) * (args[1] - input_vect[0])
         else:
             return 0
     elif profile_type == 1:
