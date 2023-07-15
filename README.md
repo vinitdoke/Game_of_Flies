@@ -57,7 +57,7 @@ python hive.py -b -r "output_directory"
 | Project Update 2 | [Update 2](https://github.com/vinitdoke/Game_of_Flies/blob/cuda_3D/Documentation/Project_Update_2.pdf) |
 | Project Update 3 | On Moodle |
 | Final Report     | [Final Report](https://github.com/vinitdoke/Game_of_Flies/blob/cuda_3D/Documentation/ae6102_project_report.pdf) |
-| Final Presentation | TBD|
+| Final Presentation | [Final Presentation](https://docs.google.com/presentation/d/1HQRkXSnLZgb5EYYDscakcldBhuxE6dnR-tViti8z1qU/edit?usp=sharing)|
 
 ---
 ## File Structure
